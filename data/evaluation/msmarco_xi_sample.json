@@ -1,0 +1,142 @@
+[
+  {
+    "doc_id": "doc_health_01",
+    "language": "en",
+    "title": "Improving Sleep Quality and Circadian Rhythms",
+    "passage": "Maintaining a consistent sleep schedule and optimizing your sleep hygiene can dramatically improve sleep quality. Going to bed and waking up at the same time every day stabilizes the body's internal circadian clock. Reducing blue light exposure and eliminating caffeine at least six hours before bedtime prevents disruptions to melatonin secretion. In addition, daily moderate aerobic exercise helps deepen slow-wave sleep, reducing nighttime awakenings and morning fatigue.",
+    "source": "MSMARCO-XI/Health",
+    "domain": "Health & Physiology",
+    "query_id": "q_sleep_01",
+    "related_query": "What is the best way to improve sleep quality?"
+  },
+  {
+    "doc_id": "doc_health_02",
+    "language": "en",
+    "title": "Impact of Nutrition on Cardiovascular Health",
+    "passage": "Dietary habits directly influence long-term cardiovascular health. Diets rich in dietary fiber, polyphenols, omega-3 fatty acids, and leafy green vegetables lower LDL cholesterol and reduce arterial inflammation. Limiting sodium intake to less than 2,300 milligrams per day helps regulate systolic blood pressure, decreasing the risk of hypertension and stroke.",
+    "source": "MSMARCO-XI/Health",
+    "domain": "Nutrition & Cardiology",
+    "query_id": "q_cardio_01",
+    "related_query": "How does diet affect cardiovascular health?"
+  },
+  {
+    "doc_id": "doc_geo_01",
+    "language": "en",
+    "title": "Geological Causes of Earthquakes",
+    "passage": "Earthquakes are primarily caused by the sudden release of accumulated stress along geological fault lines in the Earth's crust. As tectonic plates grind against one another, frictional forces lock their edges. When the built-up strain overcomes the frictional resistance, seismic energy propagates through the surrounding rock in the form of body and surface waves, causing the ground shaking experienced during a quake.",
+    "source": "MSMARCO-XI/Geology",
+    "domain": "Earth Sciences",
+    "query_id": "q_earthquake_01",
+    "related_query": "What causes earthquakes?"
+  },
+  {
+    "doc_id": "doc_physics_01",
+    "language": "en",
+    "title": "Principles of Quantum Computing and Qubits",
+    "passage": "Quantum computing harnesses the fundamental principles of quantum mechanics, notably superposition and entanglement, to perform complex computations exponentially faster than classical computers for specific problem classes. Unlike classical bits that exist strictly as 0 or 1, quantum bits (qubits) can exist in a superposition of both states simultaneously, enabling massive parallel computational state exploration.",
+    "source": "MSMARCO-XI/Science",
+    "domain": "Physics & Computing",
+    "query_id": "q_quantum_01",
+    "related_query": "How do quantum computers work and what are qubits?"
+  },
+  {
+    "doc_id": "doc_tech_01",
+    "language": "en",
+    "title": "HNSW and Vector Indexing for Approximate Nearest Neighbors",
+    "passage": "Hierarchical Navigable Small World (HNSW) graphs offer an efficient approximate nearest neighbor search mechanism for dense vector embeddings in high-dimensional vector spaces. By constructing multi-layer graphs where upper layers contain long-range skip connections and bottom layers contain densely connected local neighborhoods, HNSW achieves logarithmic search time complexity while maintaining high recall rates under low search latency constraints.",
+    "source": "MSMARCO-XI/ComputerScience",
+    "domain": "Information Retrieval",
+    "query_id": "q_hnsw_01",
+    "related_query": "How does HNSW vector indexing achieve low-latency retrieval?"
+  },
+  {
+    "doc_id": "doc_space_01",
+    "language": "en",
+    "title": "ISRO Chandrayaan Missions and Lunar South Pole Exploration",
+    "passage": "India's Chandrayaan-3 mission achieved a historic soft landing near the lunar south pole on August 23, 2023. The mission's Vikram lander and Pragyan rover conducted in-situ scientific experiments measuring lunar soil thermal properties, seismicity, and confirming the presence of elemental sulfur, iron, titanium, and oxygen on the lunar surface.",
+    "source": "MSMARCO-XI/Space",
+    "domain": "Astronomy & Space",
+    "query_id": "q_isro_01",
+    "related_query": "What was the achievement of Chandrayaan-3?"
+  },
+  {
+    "doc_id": "doc_indic_hi_01",
+    "language": "hi",
+    "title": "सौर ऊर्जा और पर्यावरण संरक्षण",
+    "passage": "सौर ऊर्जा एक स्वच्छ, नवीकरणीय और पर्यावरण-अनुकूल ऊर्जा स्रोत है। सौर पैनल सूर्य की किरणों को फोटोवोल्टिक प्रभाव के माध्यम से सीधे विद्युत ऊर्जा में बदलते हैं। इसके उपयोग से जीवाश्म ईंधनों पर निर्भरता कम होती है और ग्रीनहाउस गैसों का उत्सर्जन घटता है, जिससे वायु प्रदूषण और ग्लोबल वार्मिंग को नियंत्रित करने में मदद मिलती है।",
+    "source": "MSMARCO-XI/Indic/Hindi",
+    "domain": "Renewable Energy",
+    "query_id": "q_solar_hi_01",
+    "related_query": "सौर ऊर्जा के क्या लाभ हैं और यह पर्यावरण की रक्षा कैसे करती है?"
+  },
+  {
+    "doc_id": "doc_indic_hi_02",
+    "language": "hi",
+    "title": "योग और मानसिक स्वास्थ्य",
+    "passage": "नियमित योग और प्राणायाम का अभ्यास मानसिक तनाव को कम करने और एकाग्रता बढ़ाने में अत्यंत लाभकारी है। ध्यान और गहरी सांस लेने के व्यायाम से मस्तिष्क में कोर्टिसोल हार्मोन का स्तर कम होता है और एंडोर्फिन का स्राव बढ़ता है, जिससे मानसिक शांति और भावनात्मक संतुलन प्राप्त होता है।",
+    "source": "MSMARCO-XI/Indic/Hindi",
+    "domain": "Health & Wellness",
+    "query_id": "q_yoga_hi_01",
+    "related_query": "योग मानसिक स्वास्थ्य के लिए कैसे फायदेमंद है?"
+  },
+  {
+    "doc_id": "doc_indic_ta_01",
+    "language": "ta",
+    "title": "இயற்கை விவசாயத்தின் நன்மைகள்",
+    "passage": "இயற்கை விவசாயம் மண்ணின் வளத்தை பாதுகாப்பதோடு, நச்சுத்தன்மையற்ற ஆரோக்கியமான உணவை உற்பத்தி செய்ய உதவுகிறது. ரசாயன உரங்கள் மற்றும் பூச்சிக்கொல்லிகளை தவிர்த்து, மண்புழு உரம், பஞ்சகாவ்யா போன்ற இயற்கை உரங்களை பயன்படுத்துவதால் நிலத்தடி நீர் மாசுபடுவது தடுக்கப்படுகிறது மற்றும் பல்லுயிர் பெருக்கம் பாதுகாக்கப்படுகிறது.",
+    "source": "MSMARCO-XI/Indic/Tamil",
+    "domain": "Agriculture & Ecology",
+    "query_id": "q_agri_ta_01",
+    "related_query": "இயற்கை விவசாயத்தின் முக்கிய நன்மைகள் யாவை?"
+  },
+  {
+    "doc_id": "doc_indic_te_01",
+    "language": "te",
+    "title": "నీటి సంరక్షణ మరియు వర్షపు నీటి నిల్వ",
+    "passage": "భూగర్భ జలాల పునరుద్ధరణకు వర్షపు నీటి సంరక్షణ చాలా ముఖ్యం. పైకప్పులపై పడే వర్షపు నీటిని గుంతలు మరియు ఇంకుడు గుంటల ద్వారా భూమిలోకి ఇంకింపజేయడం వలన వేసవి కాలంలో నీటి ఎద్దడిని నివారించవచ్చు మరియు తాగునీటి నాణ్యత మెరుగుపడుతుంది.",
+    "source": "MSMARCO-XI/Indic/Telugu",
+    "domain": "Water Conservation",
+    "query_id": "q_water_te_01",
+    "related_query": "వర్షపు నీటి సంరక్షణ పద్ధతులు ఏమిటి?"
+  },
+  {
+    "doc_id": "doc_indic_bn_01",
+    "language": "bn",
+    "title": "ম্যানগ্রোভ সুন্দরবন ও জলবায়ু স্থিতিস্থাপকতা",
+    "passage": "সুন্দরবনের ম্যানগ্রোভ অরণ্য উপকূলীয় অঞ্চলকে শক্তিশালী সামুদ্রিক ঝড় এবং জলোচ্ছ্বাস থেকে রক্ষা করার প্রাকৃতিক প্রাচীর হিসেবে কাজ করে। ম্যানগ্রোভের জটিল শিকড় ব্যবস্থা মাটির ক্ষয় রোধ করে এবং বিপুল পরিমাণে কার্বন ডাই অক্সাইড শোষণ করে জলবায়ু পরিবর্তন মোকাবেলায় গুরুত্বপূর্ণ ভূমিকা পালন করে।",
+    "source": "MSMARCO-XI/Indic/Bengali",
+    "domain": "Ecology & Climate",
+    "query_id": "q_sundarban_bn_01",
+    "related_query": "সুন্দরবনের ম্যানগ্রোভ কীভাবে পরিবেশ রক্ষা করে?"
+  },
+  {
+    "doc_id": "doc_indic_mr_01",
+    "language": "mr",
+    "title": "महाराष्ट्रातील ऐतिहासिक जलव्यवस्थापन",
+    "passage": "महाराष्ट्रातील गड-किल्ल्यांवर छ्त्रपती शिवाजी महाराजांच्या काळात जलव्यवस्थापनाची उत्कृष्ट रचना करण्यात आली होती. खडकात कोरलेली तळी आणि पावसाचे पाणी साठवण्याच्या शास्त्रीय पद्धतींमुळे गडावर बारमाही स्वच्छ पाण्याचा पुरवठा सुनिश्चित होत असे.",
+    "source": "MSMARCO-XI/Indic/Marathi",
+    "domain": "History & Water Engineering",
+    "query_id": "q_water_mr_01",
+    "related_query": "शिवकालीन गड-किल्ल्यांवरील जलव्यवस्थापन कसे होते?"
+  },
+  {
+    "doc_id": "doc_ai_01",
+    "language": "en",
+    "title": "Dense Retrieval vs Sparse Retrieval in Modern RAG",
+    "passage": "Dense vector retrieval uses neural encoders to map semantically similar queries and documents close together in continuous embedding space, capturing synonymy and conceptual context without exact keyword overlap. In contrast, sparse retrieval (like BM25) relies on lexical token matching and inverted indices. Dense retrieval excels at conceptual question answering, whereas sparse retrieval is resilient to rare identifiers and out-of-vocabulary entities.",
+    "source": "MSMARCO-XI/AI",
+    "domain": "Artificial Intelligence",
+    "query_id": "q_rag_dense_01",
+    "related_query": "What is the difference between dense retrieval and sparse retrieval?"
+  },
+  {
+    "doc_id": "doc_energy_01",
+    "language": "en",
+    "title": "Nuclear Fusion as Clean Energy Source",
+    "passage": "Nuclear fusion replicates the energy-generating process of stars by fusing light atomic nuclei such as deuterium and tritium to form helium, releasing vast amounts of energy with zero long-lived radioactive waste and zero carbon emissions. Magnetic confinement fusion using tokamaks like ITER relies on superconducting magnetic coils to contain plasma heated to over 100 million degrees Celsius.",
+    "source": "MSMARCO-XI/Energy",
+    "domain": "Energy & Physics",
+    "query_id": "q_fusion_01",
+    "related_query": "Why is nuclear fusion considered the future of clean energy?"
+  }
+]

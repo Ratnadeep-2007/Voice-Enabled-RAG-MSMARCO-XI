@@ -1,0 +1,89 @@
+# VoiceRAG Configuration
+# Low-Latency Voice-Enabled Dense RAG System (PRD v1.1 & hhDesign v2)
+
+system:
+  name: "VoiceRAG"
+  version: "1.1.0"
+  target_retrieval_latency_ms: 200
+  log_level: "INFO"
+
+dataset:
+  name: "ai4bharat/MSMARCO-XI"
+  sample_data_path: "data/evaluation/msmarco_xi_sample.json"
+  supported_languages:
+    - en
+    - hi
+    - ta
+    - te
+    - bn
+    - mr
+    - gu
+    - kn
+    - ml
+    - pa
+
+preprocessing:
+  chunking_strategy: "adaptive" # fixed, fixed_overlap, sentence, adaptive
+  chunk_size: 256
+  chunk_overlap: 32
+  min_chunk_size: 64
+  max_chunk_size: 384
+  clean_text: true
+
+embeddings:
+  model_name: "paraphrase-multilingual-MiniLM-L12-v2"
+  dimension: 384
+  batch_size: 32
+  normalize_embeddings: true
+  device: "cpu" # 'cuda' or 'cpu'
+
+qdrant:
+  storage_mode: "memory" # 'memory' or 'local' or 'remote'
+  local_path: "data/qdrant_db"
+  host: "localhost"
+  port: 6333
+  collection_name: "msmarco_xi_dense"
+  distance: "Cosine"
+  hnsw_config:
+    m: 16
+    ef_construct: 100
+    full_scan_threshold: 1000
+    ef_search: 32
+  quantization:
+    enabled: false
+    type: "scalar" # 'scalar' or 'binary'
+
+retrieval:
+  default_top_k: 5
+  max_top_k: 10
+  score_threshold: 0.50
+  hybrid_mode: false # Dense is baseline; Hybrid is benchmark experiment
+  hybrid_rrf_k: 60
+
+speech:
+  provider: "sarvam" # 'sarvam', 'browser', or 'whisper'
+  sarvam_api_key: ""
+  sarvam_stt_url: "https://api.sarvam.ai/speech-to-text"
+  language_code: "hi-IN" # or 'en-IN', 'unknown'
+  model: "saaras:v1"
+  sample_rate: 16000
+
+generation:
+  provider: "fast_llm" # 'fast_llm', 'groq', 'openai', 'gemini', 'mock'
+  api_key: ""
+  model: "llama-3.1-8b-instant"
+  max_tokens: 150
+  temperature: 0.1
+  timeout_seconds: 3.0
+  context_format: "json" # 'json' or 'toon'
+
+guardrails:
+  max_query_length: 500
+  min_query_length: 3
+  relevance_threshold: 0.50
+  enable_prompt_injection_check: true
+  fallback_message: "I couldn't find enough relevant information in the knowledge base to answer that."
+
+benchmarks:
+  test_queries_path: "data/evaluation/test_queries.json"
+  iterations: 5

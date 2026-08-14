@@ -1,0 +1,59 @@
+[
+  {
+    "query_id": "test_q_01",
+    "query": "What is the best way to improve sleep?",
+    "language": "en",
+    "relevant_doc_ids": ["doc_health_01"],
+    "expected_answer_keywords": ["schedule", "circadian", "caffeine", "exercise", "melatonin"]
+  },
+  {
+    "query_id": "test_q_02",
+    "query": "What causes earthquakes?",
+    "language": "en",
+    "relevant_doc_ids": ["doc_geo_01"],
+    "expected_answer_keywords": ["tectonic plates", "stress", "fault lines", "seismic energy"]
+  },
+  {
+    "query_id": "test_q_03",
+    "query": "How do quantum computers and qubits work?",
+    "language": "en",
+    "relevant_doc_ids": ["doc_physics_01"],
+    "expected_answer_keywords": ["superposition", "entanglement", "qubits", "parallel"]
+  },
+  {
+    "query_id": "test_q_04",
+    "query": "What did Chandrayaan-3 discover on the Moon?",
+    "language": "en",
+    "relevant_doc_ids": ["doc_space_01"],
+    "expected_answer_keywords": ["Vikram", "Pragyan", "south pole", "sulfur", "soil"]
+  },
+  {
+    "query_id": "test_q_05",
+    "query": "सौर ऊर्जा के क्या फायदे हैं?",
+    "language": "hi",
+    "relevant_doc_ids": ["doc_indic_hi_01"],
+    "expected_answer_keywords": ["नवीकरणीय", "फोटोवोल्टिक", "ग्रीनहाउस", "प्रदूषण"]
+  },
+  {
+    "query_id": "test_q_06",
+    "query": "இயற்கை விவசாயத்தின் நன்மைகள் என்ன?",
+    "language": "ta",
+    "relevant_doc_ids": ["doc_indic_ta_01"],
+    "expected_answer_keywords": ["மண் வளம்", "பஞ்சகாவ்யா", "பூச்சிக்கொல்லி"]
+  },
+  {
+    "query_id": "test_q_07",
+    "query": "How does HNSW vector search achieve low latency?",
+    "language": "en",
+    "relevant_doc_ids": ["doc_tech_01"],
+    "expected_answer_keywords": ["multi-layer", "skip connections", "logarithmic", "recall"]
+  },
+  {
+    "query_id": "test_q_08",
+    "query": "What is the capital city of Atlantis on Mars?",
+    "language": "en",
+    "relevant_doc_ids": [],
+    "is_out_of_domain": true,
+    "expected_fallback": true
+  }
+]

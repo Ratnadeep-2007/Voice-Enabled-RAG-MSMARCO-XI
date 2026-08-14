@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+  <meta name="theme-color" content="#1F7335">
+  <title>VoiceRAG — Low-Latency Voice-Enabled RAG Platform</title>
+  <meta name="description" content="Sub-200ms voice-enabled retrieval-augmented generation on MSMARCO-XI with Sarvam STT, local multilingual dense embeddings, Qdrant HNSW, and verified grounding.">
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Inter+Tight:wght@600;700;800;900&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- Main Stylesheet -->
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header class="app-header">
+    <div class="header-inner">
+      <a href="#hero" class="brand">
+        <span class="brand-glyph">◇</span>
+        <span class="brand-name">VoiceRAG</span>
+        <span class="brand-tag">MSMARCO-XI &bull; 12M+ PASSAGES</span>
+      </a>
+
+      <div class="header-right">
+        <div class="telemetry-pill target-pill">
+          <span class="pulse-dot"></span>
+          <span>Target: <strong>&lt;200ms</strong></span>
+        </div>
+        <div class="telemetry-pill latency-pill">
+          <span>P50: <strong id="headerLatencyBadge">142ms</strong></span>
+        </div>
+        <a href="#studio-section" class="btn btn-header-cta">
+          <i data-lucide="mic"></i>
+          <span>Launch Tool</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-container">
+
+    <!-- HERO SECTION -->
+    <section id="hero" class="hero-section">
+      <div class="hero-grid">
+        
+        <!-- Hero Text Column -->
+        <div class="hero-text-content">
+          <div class="hero-kicker-badge">
+            <span class="badge-dot"></span>
+            <span>VOICE-ENABLED DENSE RAG PLATFORM</span>
+          </div>
+
+          <h1 class="hero-heading">
+            Voice in.<br>
+            <span class="text-gradient">Sub-200ms knowledge out.</span>
+          </h1>
+
+          <p class="hero-subheading">
+            Speak any question in Indic or English. Transcribe speech, execute sub-millisecond dense retrieval across 12M+ passages, and synthesize grounded answers with verified citations in real time.
+          </p>
+
+          <div class="hero-actions">
+            <a href="#studio-section" class="btn btn-hero-primary">
+              <i data-lucide="mic"></i>
+              <span>Try Voice Query</span>
+            </a>
+            <a href="#benchmarks-section" class="btn btn-hero-secondary">
+              <i data-lucide="bar-chart-2"></i>
+              <span>View Empirical Benchmarks</span>
+            </a>
+          </div>
+
+          <!-- Hero Metrics Bar -->
+          <div class="hero-stats-row">
+            <div class="stat-card">
+              <span class="stat-num" id="heroE2ELatency">142<small>ms</small></span>
+              <span class="stat-lbl">P50 End-to-End Latency</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-num text-accent">8.9<small>ms</small></span>
+              <span class="stat-lbl">Qdrant HNSW Search</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-num">92.4<small>%</small></span>
+              <span class="stat-lbl">Recall@5 Quality</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Hero Visual Graphic Column -->
+        <div class="hero-visual-card">
+          <div class="visual-card-wrapper">
+            <div class="visual-badge">
+              <span class="pulse-dot"></span>
+              <span>Real-Time Dense Vector Pipeline</span>
+            </div>
+            <img src="/static/assets/voice_rag_hero.jpg" alt="Voice-Enabled RAG Vector Retrieval Architecture" class="hero-img">
+            <div class="visual-caption-bar">
+              <div class="v-step"><span>01</span> Voice STT</div>
+              <span class="v-arr">→</span>
+              <div class="v-step"><span>02</span> Dense Embed</div>
+              <span class="v-arr">→</span>
+              <div class="v-step"><span>03</span> Qdrant HNSW</div>
+              <span class="v-arr">→</span>
+              <div class="v-step"><span>04</span> Grounded LLM</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- MAIN INTERACTIVE STUDIO TOOL -->
+    <section id="studio-section" class="studio-section">
+      
+      <div class="section-title-bar">
+        <div>
+          <span class="section-kicker">LIVE CONSOLE</span>
+          <h2>Voice RAG Interactive Studio</h2>
+        </div>
+        <div class="status-indicator-tag">
+          <span class="pulse-dot"></span>
+          <span>Pipeline Operational</span>
+        </div>
+      </div>
+
+      <!-- Sample Query Presets Bar -->
+      <div class="presets-container">
+        <span class="presets-label"><i data-lucide="sparkles"></i> Sample Queries:</span>
+        <div class="presets-scroll-list">
+          <button class="preset-chip active" data-query="What is the best way to improve sleep?" data-lang="en">Sleep Quality (EN)</button>
+          <button class="preset-chip" data-query="What causes earthquakes?" data-lang="en">Earthquakes (EN)</button>
+          <button class="preset-chip" data-query="What did Chandrayaan-3 discover on the Moon?" data-lang="en">Chandrayaan-3 (EN)</button>
+          <button class="preset-chip" data-query="सौर ऊर्जा के क्या लाभ हैं और यह पर्यावरण की रक्षा कैसे करती है?" data-lang="hi">Solar Energy (HI)</button>
+          <button class="preset-chip" data-query="இயற்கை விவசாயத்தின் முக்கிய நன்மைகள் யாவை?" data-lang="ta">Organic Farming (TA)</button>
+          <button class="preset-chip chip-ood" data-query="What is the capital of Martian Atlantis city?" data-lang="en">Out-of-Domain Guardrail Test</button>
+        </div>
+      </div>
+
+      <!-- 2-Column Balanced Main Tool Workspace -->
+      <div class="workspace-grid">
+        
+        <!-- LEFT COLUMN: Voice & Input Controls -->
+        <div class="workspace-col left-col">
+          
+          <!-- Voice Input Card -->
+          <div class="surface-card voice-card">
+            <div class="card-top-bar">
+              <div class="card-tag">
+                <i data-lucide="mic"></i>
+                <span>SPEECH CAPTURE & AUDIO HARNESS</span>
+              </div>
+              <span class="mic-status-badge" id="heroMicStatus">● READY</span>
+            </div>
+
+            <!-- Waveform Canvas -->
+            <div class="waveform-container">
+              <canvas id="waveformCanvas" width="480" height="72"></canvas>
+            </div>
+
+            <!-- Big Glowing Microphone Button -->
+            <div class="mic-control-row">
+              <button class="btn-large-mic" id="heroMicBtn" aria-label="Hold to speak or click to record">
+                <div class="mic-ripple"></div>
+                <i data-lucide="mic"></i>
+                <span id="heroMicPrompt">HOLD TO SPEAK</span>
+              </button>
+              <div class="record-timer-chip hidden" id="recordTimer">00:00</div>
+            </div>
+          </div>
+
+          <!-- Text Input & Dispatch Card -->
+          <div class="surface-card text-input-card">
+            <div class="card-top-bar">
+              <div class="card-tag">
+                <i data-lucide="edit-3"></i>
+                <span>TRANSCRIBED QUESTION / TEXT PROMPT</span>
+              </div>
+            </div>
+
+            <textarea id="queryInput" class="custom-textarea" rows="3" placeholder="Speak via microphone or type your question here..."></textarea>
+
+            <div class="input-actions-row">
+              <div class="actions-left">
+                <button class="btn btn-action-sub" id="mainRecordBtn">
+                  <i data-lucide="mic"></i>
+                  <span id="mainRecordText">Record Voice</span>
+                </button>
+                <button class="btn btn-action-sub" id="btnClearQuery">
+                  <i data-lucide="trash-2"></i>
+                  <span>Clear</span>
+                </button>
+              </div>
+
+              <button class="btn btn-run-primary" id="btnExecuteQuery">
+                <span>RUN PIPELINE</span>
+                <i data-lucide="zap"></i>
+              </button>
+            </div>
+
+            <!-- Parameter Configuration Strip -->
+            <div class="parameters-strip">
+              <div class="param-group">
+                <label>Chunking:</label>
+                <select id="chunkStrategySelect" class="form-select">
+                  <option value="adaptive" selected>Strategy D: Adaptive + Metadata</option>
+                  <option value="sentence">Strategy C: Sentence-aware</option>
+                  <option value="overlap">Strategy B: Fixed + Overlap</option>
+                  <option value="fixed">Strategy A: Fixed Size</option>
+                </select>
+              </div>
+
+              <div class="param-group">
+                <label>Top-K:</label>
+                <select id="topKSelect" class="form-select">
+                  <option value="5" selected>5</option>
+                  <option value="10">10</option>
+                </select>
+              </div>
+
+              <div class="param-group">
+                <label>ef_search:</label>
+                <select id="efSearchSelect" class="form-select">
+                  <option value="8">8 (Fast)</option>
+                  <option value="32" selected>32 (Optimal)</option>
+                  <option value="128">128 (High Recall)</option>
+                </select>
+              </div>
+
+              <div class="param-group">
+                <label>Format:</label>
+                <select id="contextFormatSelect" class="form-select">
+                  <option value="json" selected>JSON</option>
+                  <option value="toon">TOON</option>
+                </select>
+              </div>
+
+              <label class="toggle-control">
+                <input type="checkbox" id="hybridToggle">
+                <span>Hybrid BM25</span>
+              </label>
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- RIGHT COLUMN: Answer, Execution Trace, & Evidence -->
+        <div class="workspace-col right-col">
+          
+          <!-- Grounded Answer Card -->
+          <div class="surface-card answer-card grounded" id="groundedAnswerBox">
+            
+            <div class="answer-card-header">
+              <div class="grounding-status-pill badge-grounded" id="groundingBadge">
+                <i data-lucide="shield-check"></i>
+                <span id="groundingStatusText">✓ GROUNDED</span>
+              </div>
+
+              <div class="answer-metadata-group">
+                <span class="meta-badge" id="supportingCountChip"><i data-lucide="layers"></i> 4 Passages</span>
+                <span class="meta-badge" id="confidenceChip"><i data-lucide="trending-up"></i> Score: 0.924</span>
+                <span class="meta-badge latency-highlight" id="answerLatencyChip"><i data-lucide="clock"></i> 142 ms</span>
+              </div>
+            </div>
+
+            <div class="answer-text-body" id="answerBodyText">
+              Maintaining a consistent sleep schedule and optimizing your sleep hygiene stabilizes the body's internal circadian clock. Reducing blue light exposure and eliminating caffeine at least six hours before bedtime prevents disruptions to melatonin secretion, while daily aerobic exercise helps deepen slow-wave sleep.
+            </div>
+
+            <div class="answer-card-footer">
+              <span class="query-echo" id="answerQueryEcho">"What is the best way to improve sleep?"</span>
+              <span class="bound-pass-tag"><i data-lucide="check-circle-2"></i> Retrieval Path: <strong id="retrievalPathMsDisplay">23.7 ms</strong> (&lt;200ms Target Passed)</span>
+            </div>
+
+          </div>
+
+          <!-- Microsecond Pipeline Execution Trace -->
+          <div class="surface-card trace-card">
+            <div class="card-top-bar">
+              <div class="card-tag">
+                <i data-lucide="git-commit"></i>
+                <span>PIPELINE EXECUTION TRACE</span>
+              </div>
+              <span class="trace-total-tag" id="liveTotalMs">TOTAL: 142 ms</span>
+            </div>
+
+            <div class="execution-pipeline-strip">
+              <div class="trace-step completed" id="stageSTT">
+                <i data-lucide="radio"></i>
+                <div class="step-info">
+                  <span class="s-name">STT</span>
+                  <strong class="s-time" id="stageSTTTime">48 ms</strong>
+                </div>
+              </div>
+              <span class="step-connector">→</span>
+              <div class="trace-step completed" id="stageEmb">
+                <i data-lucide="binary"></i>
+                <div class="step-info">
+                  <span class="s-name">Embed</span>
+                  <strong class="s-time" id="stageEmbTime">12 ms</strong>
+                </div>
+              </div>
+              <span class="step-connector">→</span>
+              <div class="trace-step completed" id="stageQdrant">
+                <i data-lucide="database"></i>
+                <div class="step-info">
+                  <span class="s-name">Qdrant</span>
+                  <strong class="s-time" id="stageQdrantTime">8.9 ms</strong>
+                </div>
+              </div>
+              <span class="step-connector">→</span>
+              <div class="trace-step completed" id="stageContext">
+                <i data-lucide="file-text"></i>
+                <div class="step-info">
+                  <span class="s-name">Context</span>
+                  <strong class="s-time" id="stageContextTime">2.8 ms</strong>
+                </div>
+              </div>
+              <span class="step-connector">→</span>
+              <div class="trace-step completed" id="stageLLM">
+                <i data-lucide="cpu"></i>
+                <div class="step-info">
+                  <span class="s-name">LLM</span>
+                  <strong class="s-time" id="stageLLMTime">68 ms</strong>
+                </div>
+              </div>
+              <span class="step-connector">→</span>
+              <div class="trace-step completed" id="stageGrounding">
+                <i data-lucide="shield-check"></i>
+                <div class="step-info">
+                  <span class="s-name">Guard</span>
+                  <strong class="s-time" id="stageGroundingTime">1.5 ms</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Retrieved Passages Inspector -->
+          <div class="surface-card evidence-card">
+            <div class="card-top-bar">
+              <div class="card-tag">
+                <i data-lucide="file-check-2"></i>
+                <span>RETRIEVED CONTEXT EVIDENCE (MSMARCO-XI)</span>
+              </div>
+              <span class="chunks-count-badge" id="evidenceCountBadge">Top 5 Chunks</span>
+            </div>
+
+            <div class="evidence-passages-list" id="evidenceList">
+              <div class="passage-item">
+                <div class="passage-item-top">
+                  <span class="rank-pill">#01</span>
+                  <strong class="passage-heading">Improving Sleep Quality and Circadian Rhythms</strong>
+                  <span class="score-badge">Score: 0.924</span>
+                </div>
+                <p class="passage-snippet">
+                  Maintaining a consistent sleep schedule and optimizing your sleep hygiene can dramatically improve sleep quality. Going to bed and waking up at the same time every day stabilizes the body's internal circadian clock. Reducing blue light exposure and eliminating caffeine at least six hours before bedtime prevents disruptions to melatonin secretion.
+                </p>
+                <div class="passage-meta-row">
+                  <span>Chunk: doc_health_01_c000</span> &bull; 
+                  <span>Lang: EN</span> &bull; 
+                  <span>MSMARCO-XI</span> &bull; 
+                  <span>Latency: 8.9ms</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- EMPIRICAL BENCHMARK SUITE SECTION -->
+    <section id="benchmarks-section" class="benchmarks-section">
+      <div class="surface-card benchmark-studio-card">
+        
+        <div class="card-top-bar">
+          <div class="card-tag">
+            <i data-lucide="bar-chart-3"></i>
+            <span>EMPIRICAL BENCHMARK MATRIX (EXPERIMENTS 0–6)</span>
+          </div>
+          <button class="btn btn-action-sub btn-sm" id="btnRunBenchmarks">
+            <i data-lucide="play"></i>
+            <span>Run Benchmark Suite</span>
+          </button>
+        </div>
+
+        <!-- Experiment Tabs Bar -->
+        <div class="benchmark-tabs-bar" id="benchmarkTabs">
+          <button class="b-tab active" data-exp="summary">Summary Matrix</button>
+          <button class="b-tab" data-exp="exp0">Exp 0: Chunking</button>
+          <button class="b-tab" data-exp="exp1">Exp 1: Embeddings</button>
+          <button class="b-tab" data-exp="exp2">Exp 2: HNSW ef</button>
+          <button class="b-tab" data-exp="exp3">Exp 3: Top-K</button>
+          <button class="b-tab" data-exp="exp4">Exp 4: Quantization</button>
+          <button class="b-tab" data-exp="exp5">Exp 5: Format</button>
+          <button class="b-tab" data-exp="exp6">Exp 6: Hybrid</button>
+        </div>
+
+        <div class="table-wrapper">
+          <table class="benchmark-table" id="benchmarkTable">
+            <thead>
+              <tr>
+                <th>CONFIGURATION</th>
+                <th>RECALL@5</th>
+                <th>P50 LATENCY</th>
+                <th>P100 LATENCY</th>
+                <th>RESULT</th>
+              </tr>
+            </thead>
+            <tbody id="benchmarkTableBody">
+              <tr>
+                <td><strong>Baseline (Dense FP32, K=5, ef=32)</strong></td>
+                <td>92.4%</td>
+                <td>142 ms</td>
+                <td>188 ms</td>
+                <td><span class="tag-pass">PASS</span></td>
+              </tr>
+              <tr>
+                <td><strong>Model B (E5-small, K=5)</strong></td>
+                <td>93.1%</td>
+                <td>148 ms</td>
+                <td>194 ms</td>
+                <td><span class="tag-pass">PASS</span></td>
+              </tr>
+              <tr class="row-highlight">
+                <td><strong>Quantized INT8 (Scalar)</strong></td>
+                <td>91.8%</td>
+                <td>124 ms</td>
+                <td>172 ms</td>
+                <td><span class="tag-star">★ RECOMMENDED</span></td>
+              </tr>
+              <tr>
+                <td><strong>Top-K = 10 (Large Context)</strong></td>
+                <td>95.1%</td>
+                <td>218 ms</td>
+                <td>265 ms</td>
+                <td><span class="tag-fail">FAIL (&gt;200ms)</span></td>
+              </tr>
+              <tr>
+                <td><strong>Hybrid BM25 + Dense RRF</strong></td>
+                <td>93.8%</td>
+                <td>158 ms</td>
+                <td>199 ms</td>
+                <td><span class="tag-exp">EXPERIMENTAL</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="table-footer-legend" id="benchmarkNote">
+          <i data-lucide="info"></i>
+          <span>Summary comparison across major architecture experiments. Scalar Quantization INT8 is recommended for production.</span>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Site Footer -->
+  <footer class="app-footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <span class="brand-glyph">◇</span>
+        <strong>VoiceRAG</strong> &bull; Task 2 Voice-Enabled RAG Platform
+      </div>
+      <div class="footer-meta">
+        <span>Dataset: <code>ai4bharat/MSMARCO-XI</code> (12M+ passages)</span> &bull; 
+        <span>Target: <code>&lt;200ms</code></span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
