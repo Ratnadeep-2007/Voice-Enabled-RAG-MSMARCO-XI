@@ -639,12 +639,14 @@ button {
 .workspace-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 24px;
+  gap: 20px;
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 768px) {
   .workspace-grid {
-    grid-template-columns: 1.05fr 0.95fr;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    align-items: start;
   }
 }
 
@@ -1365,4 +1367,25 @@ button {
 .footer-meta code {
   color: var(--primary-green);
   font-weight: 700;
+}
+
+/* Loader & Micro-animations */
+.spin {
+  animation: spinLoader 0.9s linear infinite;
+  display: inline-block;
+}
+
+@keyframes spinLoader {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.pulse-answer {
+  animation: answerHighlight 1s ease-out;
+}
+
+@keyframes answerHighlight {
+  0% { box-shadow: 0 0 0 0 rgba(31, 115, 53, 0.4); }
+  50% { box-shadow: 0 0 0 6px rgba(31, 115, 53, 0.15); }
+  100% { box-shadow: var(--shadow-card); }
 }
