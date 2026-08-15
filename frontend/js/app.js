@@ -942,5 +942,5 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Initial Data Fetch
-  loadBenchmarks();
+  // loadBenchmarks(); // Removed since benchmark section was removed as per user request
 });
