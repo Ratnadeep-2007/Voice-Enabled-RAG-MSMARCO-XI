@@ -46,7 +46,72 @@
   </header>
 
   <main class="page-container">
+    <!-- HERO SECTION -->
+    <section id="hero" class="hero-section">
+      <div class="hero-grid">
+        
+        <!-- Hero Text Column -->
+        <div class="hero-text-content">
+          <div class="hero-kicker-badge">
+            <span class="badge-dot"></span>
+            <span>VOICE-ENABLED DENSE RAG PLATFORM</span>
+          </div>
 
+          <h1 class="hero-heading">
+            Voice in.<br>
+            <span class="text-gradient">Sub-200ms knowledge out.</span>
+          </h1>
+
+          <p class="hero-subheading">
+            Speak any question in Indic or English. Transcribe speech, execute sub-millisecond dense retrieval across 12M+ passages, and synthesize grounded answers with verified citations in real time.
+          </p>
+
+          <div class="hero-actions">
+            <a href="#studio-section" class="btn btn-hero-primary">
+              <i data-lucide="mic"></i>
+              <span>Try Voice Query</span>
+            </a>
+          </div>
+
+          <!-- Hero Metrics Bar -->
+          <div class="hero-stats-row">
+            <div class="stat-card">
+              <span class="stat-num" id="heroE2ELatency">142<small>ms</small></span>
+              <span class="stat-lbl">P50 End-to-End Latency</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-num text-accent">8.9<small>ms</small></span>
+              <span class="stat-lbl">Qdrant HNSW Search</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-num">92.4<small>%</small></span>
+              <span class="stat-lbl">Recall@5 Quality</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Hero Visual Graphic Column -->
+        <div class="hero-visual-card">
+          <div class="visual-card-wrapper">
+            <div class="visual-badge">
+              <span class="pulse-dot"></span>
+              <span>Real-Time Dense Vector Pipeline</span>
+            </div>
+            <img src="/static/assets/voice_rag_hero.jpg" alt="Voice-Enabled RAG Vector Retrieval Architecture" class="hero-img">
+            <div class="visual-caption-bar">
+              <div class="v-step"><span>01</span> Voice STT</div>
+              <span class="v-arr">→</span>
+              <div class="v-step"><span>02</span> Dense Embed</div>
+              <span class="v-arr">→</span>
+              <div class="v-step"><span>03</span> Qdrant HNSW</div>
+              <span class="v-arr">→</span>
+              <div class="v-step"><span>04</span> Grounded LLM</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
 
     <!-- MAIN INTERACTIVE STUDIO TOOL -->
     <section id="studio-section" class="studio-section">
