@@ -17,24 +17,27 @@ class SarvamSTTClient:
     def __init__(
         self,
         api_key: Optional[str] = None,
-        api_url: str = "https://api.sarvam.ai/speech-to-text",
         language_code: str = "hi-IN",
         model: str = "saaras:v1"
     ):
         self.api_key = api_key or os.getenv("SARVAM_API_KEY", "")
-        self.api_url = api_url
         self.language_code = language_code
         self.model = model
+        self.api_url = "https://api.sarvam.ai/speech-to-text"
+        
+        # Persistent HTTP client with connection pooling & keep-alive
+        limits = httpx.Limits(max_keepalive_connections=20, max_connections=50, keepalive_expiry=60.0)
+        self._http_client = httpx.Client(timeout=3.0, limits=limits)
 
-    def transcribe_audio_bytes(
+    def transcribe_audio(
         self,
         audio_bytes: bytes,
-        filename: str = "audio.wav",
-        language_code: Optional[str] = None
+        language_code: Optional[str] = None,
+        filename: str = "audio.wav"
     ) -> Dict[str, Any]:
         """
-        Transcribes raw audio bytes using Sarvam STT or local fallback.
-        Measures exact network/processing latency in milliseconds.
+        Transcribes speech audio bytes to text using Sarvam AI STT.
+        Falls back gracefully to high-speed local simulated transcription if API key is not configured.
         """
         t0 = time.perf_counter()
         lang = language_code or self.language_code
@@ -51,23 +54,23 @@ class SarvamSTTClient:
                     "file": (filename, audio_bytes, "audio/wav")
                 }
 
-                with httpx.Client(timeout=3.0) as client:
-                    response = client.post(self.api_url, headers=headers, data=data, files=files)
-                    latency_ms = (time.perf_counter() - t0) * 1000.0
+                # Reuse warm keep-alive connection
+                response = self._http_client.post(self.api_url, headers=headers, data=data, files=files)
+                latency_ms = (time.perf_counter() - t0) * 1000.0
 
-                    if response.status_code == 200:
-                        res_json = response.json()
-                        transcript = res_json.get("transcript", "")
-                        detected_lang = res_json.get("language_code", lang)
-                        return {
-                            "text": transcript.strip(),
-                            "language": detected_lang,
-                            "latency_ms": round(latency_ms, 2),
-                            "provider": "sarvam",
-                            "status": "success"
-                        }
-                    else:
-                        logger.warning(f"Sarvam STT API returned status {response.status_code}")
+                if response.status_code == 200:
+                    res_json = response.json()
+                    transcript = res_json.get("transcript", "")
+                    detected_lang = res_json.get("language_code", lang)
+                    return {
+                        "text": transcript.strip(),
+                        "language": detected_lang,
+                        "latency_ms": round(latency_ms, 2),
+                        "provider": "sarvam",
+                        "status": "success"
+                    }
+                else:
+                    logger.warning(f"Sarvam STT API returned status {response.status_code}")
             except Exception as e:
                 logger.warning(f"Sarvam STT API request error: {e}")
 

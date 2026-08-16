@@ -29,6 +29,10 @@ class FastLLMGenerator:
         self.max_tokens = max_tokens
         self.temperature = temperature
         self.timeout = timeout
+        
+        # Persistent HTTP client with connection pooling & keep-alive (eliminates TCP+TLS handshake latency)
+        limits = httpx.Limits(max_keepalive_connections=20, max_connections=50, keepalive_expiry=60.0)
+        self._http_client = httpx.Client(timeout=self.timeout, limits=limits)
 
     def _local_grounded_synthesis(
         self,
@@ -89,21 +93,21 @@ class FastLLMGenerator:
                     "temperature": self.temperature
                 }
 
-                with httpx.Client(timeout=self.timeout) as client:
-                    resp = client.post(url, headers=headers, json=body)
-                    latency_ms = (time.perf_counter() - t0) * 1000.0
-                    if resp.status_code == 200:
-                        data = resp.json()
-                        answer = data["choices"][0]["message"]["content"].strip()
-                        return {
-                            "answer": answer,
-                            "latency_ms": round(latency_ms, 2),
-                            "provider": "hosted_llm",
-                            "model": body["model"],
-                            "status": "success"
-                        }
-                    else:
-                        logger.warning(f"LLM API returned {resp.status_code}: {resp.text}")
+                # Reuse warm keep-alive connection
+                resp = self._http_client.post(url, headers=headers, json=body)
+                latency_ms = (time.perf_counter() - t0) * 1000.0
+                if resp.status_code == 200:
+                    data = resp.json()
+                    answer = data["choices"][0]["message"]["content"].strip()
+                    return {
+                        "answer": answer,
+                        "latency_ms": round(latency_ms, 2),
+                        "provider": "hosted_llm",
+                        "model": body["model"],
+                        "status": "success"
+                    }
+                else:
+                    logger.warning(f"LLM API returned {resp.status_code}: {resp.text}")
             except Exception as e:
                 logger.error(f"Error connecting to LLM API: {e}")
 
