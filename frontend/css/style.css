@@ -832,6 +832,31 @@ button {
   height: 14px;
 }
 
+.btn-record {
+  background-color: var(--bg-mint-light);
+  color: var(--primary-green);
+  border-color: rgba(31, 115, 53, 0.25);
+  font-weight: 700;
+}
+
+.btn-record:hover {
+  background-color: #E2ECE5;
+  border-color: var(--primary-green);
+}
+
+.btn-record.recording {
+  background-color: var(--color-error-bg);
+  color: var(--color-error);
+  border-color: var(--color-error);
+  animation: pulseRecording 1.5s infinite;
+}
+
+@keyframes pulseRecording {
+  0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4); }
+  70% { box-shadow: 0 0 0 6px rgba(220, 38, 38, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
+}
+
 .btn-run-primary {
   display: inline-flex;
   align-items: center;

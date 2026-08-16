@@ -16,7 +16,7 @@
   <script src="https://unpkg.com/lucide@latest"></script>
   
   <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="/static/css/style.css?v=2.4">
+  <link rel="stylesheet" href="/static/css/style.css?v=2.5">
 </head>
 <body>
 
@@ -146,46 +146,29 @@
         <!-- LEFT COLUMN: Voice & Input Controls -->
         <div class="workspace-col left-col">
           
-          <!-- Voice Input Card -->
-          <div class="surface-card voice-card">
+          <!-- Unified Query Input Card -->
+          <div class="surface-card query-card">
             <div class="card-top-bar">
               <div class="card-tag">
                 <i data-lucide="mic"></i>
-                <span>SPEECH CAPTURE & AUDIO HARNESS</span>
+                <span>VOICE & TEXT QUERY INPUT</span>
               </div>
-              <span class="mic-status-badge" id="heroMicStatus">● READY</span>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <div class="record-timer-chip hidden" id="recordTimer">00:00</div>
+                <span class="mic-status-badge" id="heroMicStatus">● READY</span>
+              </div>
             </div>
 
-            <!-- Waveform Canvas -->
+            <!-- Real-time Speech Waveform -->
             <div class="waveform-container">
-              <canvas id="waveformCanvas" width="480" height="72"></canvas>
+              <canvas id="waveformCanvas" width="480" height="64"></canvas>
             </div>
 
-            <!-- Big Glowing Microphone Button -->
-            <div class="mic-control-row">
-              <button class="btn-large-mic" id="heroMicBtn" onclick="toggleVoiceRecord()" aria-label="Click to start/stop speech recording">
-                <div class="mic-ripple"></div>
-                <i data-lucide="mic"></i>
-                <span id="heroMicPrompt">CLICK TO SPEAK</span>
-              </button>
-              <div class="record-timer-chip hidden" id="recordTimer">00:00</div>
-            </div>
-          </div>
-
-          <!-- Text Input & Dispatch Card -->
-          <div class="surface-card text-input-card">
-            <div class="card-top-bar">
-              <div class="card-tag">
-                <i data-lucide="edit-3"></i>
-                <span>TRANSCRIBED QUESTION / TEXT PROMPT</span>
-              </div>
-            </div>
-
-            <textarea id="queryInput" class="custom-textarea" rows="3" placeholder="Speak via microphone or type your question here..."></textarea>
+            <textarea id="queryInput" class="custom-textarea" rows="4" placeholder="Speak via microphone or type your question here..."></textarea>
 
             <div class="input-actions-row">
               <div class="actions-left">
-                <button class="btn btn-action-sub" id="mainRecordBtn" onclick="toggleVoiceRecord()">
+                <button class="btn btn-action-sub btn-record" id="mainRecordBtn" onclick="toggleVoiceRecord()">
                   <i data-lucide="mic"></i>
                   <span id="mainRecordText">Record Voice</span>
                 </button>
@@ -349,6 +332,6 @@
     </div>
   </footer>
 
-  <script src="/static/js/app.js?v=2.4"></script>
+  <script src="/static/js/app.js?v=2.5"></script>
 </body>
 </html>
