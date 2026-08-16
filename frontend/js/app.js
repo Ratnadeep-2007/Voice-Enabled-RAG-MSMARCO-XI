@@ -974,20 +974,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }, { passive: true });
 
-  // FAQ Accordion
-  const faqItems = document.querySelectorAll('.faq-item');
-  faqItems.forEach(item => {
-    const btn = item.querySelector('.faq-q');
-    if (btn) {
-      btn.addEventListener('click', () => {
-        const isActive = item.classList.contains('active');
-        faqItems.forEach(i => i.classList.remove('active'));
-        if (!isActive) {
-          item.classList.add('active');
-        }
-      });
-    }
-  });
+
 
   // Benchmark Collapsible Toggle
   const btnToggleBenchmarks = document.getElementById('btnToggleBenchmarks');
