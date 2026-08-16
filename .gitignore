@@ -51,3 +51,7 @@ $RECYCLE.BIN/
 *.log
 scratch/
 tmp/
+
+# Large local vector & LMDB binary storage
+data/lmdb_store/
+data/faiss_index/

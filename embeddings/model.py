@@ -1,14 +1,21 @@
 """
 Multilingual Dense Embedding Model Manager.
 Optimized for local CPU inference (<15-20ms) as specified in PRD §10 & §22.2.
-Supports ultra-fast local multilingual semantic vector projection, ONNX, and SentenceTransformers.
+Supports SentenceTransformers, ONNX, and high-speed local multilingual semantic vector projection.
 """
 
+import os
 import time
 import logging
 import hashlib
 import numpy as np
 from typing import List, Union, Optional, Dict, Any
+from dotenv import load_dotenv
+
+# Ensure .env is loaded from workspace root
+env_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".env"))
+if os.path.exists(env_path):
+    load_dotenv(env_path)
 
 logger = logging.getLogger(__name__)
 
@@ -34,22 +41,23 @@ class EmbeddingEngine:
         if self.use_torch:
             try:
                 from sentence_transformers import SentenceTransformer
-                logger.info(f"Loading SentenceTransformer '{self.model_name}'...")
+                logger.info(f"Loading SentenceTransformer '{self.model_name}' on {self.device}...")
                 self._model = SentenceTransformer(self.model_name, device=self.device)
-                if hasattr(self._model, "get_sentence_embedding_dimension"):
+                if hasattr(self._model, "get_embedding_dimension"):
+                    self.dimension = self._model.get_embedding_dimension()
+                elif hasattr(self._model, "get_sentence_embedding_dimension"):
                     self.dimension = self._model.get_sentence_embedding_dimension()
-                logger.info(f"Loaded SentenceTransformer (dim={self.dimension})")
+                logger.info(f"Loaded SentenceTransformer successfully (dim={self.dimension})")
                 return
             except Exception as e:
                 logger.warning(f"SentenceTransformer fallback: {e}")
 
-        logger.info(f"Initialized high-speed local multilingual embedding engine (dim={self.dimension}, <1ms latency).")
+        logger.info(f"Initialized local semantic embedding engine (dim={self.dimension}).")
 
     def _fallback_embed(self, text: str) -> np.ndarray:
         """
-        Fast deterministic semantic vector projection for multilingual text.
-        Generates consistent unit-norm vectors in 384 dimensions under 1ms.
-        Captures Indic Unicode character n-grams and Latin words without random noise.
+        Fast deterministic semantic vector projection for multilingual text fallback.
+        Generates unit-norm vectors in 384 dimensions with subword char n-grams.
         """
         vec = np.zeros(self.dimension, dtype=np.float32)
         clean = text.lower().strip()
@@ -57,7 +65,6 @@ class EmbeddingEngine:
         
         # Word-level projection
         for i, word in enumerate(words):
-            # Base word hash
             h = int(hashlib.md5(word.encode("utf-8")).hexdigest(), 16)
             pos1 = h % self.dimension
             pos2 = (h >> 16) % self.dimension

@@ -132,12 +132,12 @@
         <span class="presets-label"><i data-lucide="sparkles"></i> Sample Queries:</span>
         <div class="presets-scroll-list">
           <button class="preset-chip active" onclick="selectPresetQuery(this)" data-query="What did Chandrayaan-3 discover on the Moon?" data-lang="en">Chandrayaan-3 (EN)</button>
+          <button class="preset-chip" onclick="selectPresetQuery(this)" data-query="How can someone get deeper slumber and rest at night?" data-lang="en">Sleep Paraphrase (EN)</button>
+          <button class="preset-chip" onclick="selectPresetQuery(this)" data-query="Why does tectonic friction cause ground vibration?" data-lang="en">Earthquake Synonym (EN)</button>
           <button class="preset-chip" onclick="selectPresetQuery(this)" data-query="चंद्रयान-3 ने चंद्रमा पर क्या खोज की?" data-lang="hi">Chandrayaan-3 (HI)</button>
           <button class="preset-chip" onclick="selectPresetQuery(this)" data-query="சந்திரயான்-3 நிலவில் என்ன கண்டுபிடித்தது?" data-lang="ta">Chandrayaan-3 (TA)</button>
-          <button class="preset-chip" onclick="selectPresetQuery(this)" data-query="చంద్రయాన్ 3 చంద్రుడిపై ఏమి కనుగొంది?" data-lang="te">Chandrayaan-3 (TE)</button>
           <button class="preset-chip" onclick="selectPresetQuery(this)" data-query="सौर ऊर्जा के क्या लाभ हैं और यह पर्यावरण की रक्षा कैसे करती है?" data-lang="hi">Solar Energy (HI)</button>
           <button class="preset-chip" onclick="selectPresetQuery(this)" data-query="இயற்கை விவசாயத்தின் முக்கிய நன்மைகள் யாவை?" data-lang="ta">Organic Farming (TA)</button>
-          <button class="preset-chip" onclick="selectPresetQuery(this)" data-query="What is the best way to improve sleep?" data-lang="en">Sleep Quality (EN)</button>
           <button class="preset-chip chip-ood" onclick="selectPresetQuery(this)" data-query="What is the capital of Martian Atlantis city?" data-lang="en">Out-of-Domain Guardrail Test</button>
         </div>
       </div>
@@ -169,16 +169,16 @@
             <!-- Temporary Development Model Selector -->
             <div class="model-select-strip" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 6px 10px;">
               <span style="font-size: 0.76rem; color: var(--text-muted); display: flex; align-items: center; gap: 5px;">
-                <i data-lucide="cpu" style="width: 14px; height: 14px; color: var(--primary-green);"></i> Synthesis Model (Dev):
+                <i data-lucide="cpu" style="width: 14px; height: 14px; color: var(--primary-green);"></i> Synthesis Model:
               </span>
               <select id="modelSelector" class="model-dropdown" style="background: #111418; color: #E6EDF3; border: 1px solid #30363D; border-radius: 6px; padding: 4px 8px; font-size: 0.76rem; font-weight: 600; cursor: pointer; outline: none;">
-                <option value="llama-3.1-8b-instant" selected>Groq: Llama-3.1-8B-Instant (~45ms)</option>
+                <option value="llama-3.1-8b-instant" selected>Groq: Llama-3.1-8B-Instant (~160ms | Sub-200ms)</option>
+                <option value="llama-3.3-70b-versatile">Groq: Llama-3.3-70B-Versatile (~300ms Reasoning)</option>
+                <option value="deepseek/deepseek-v4-flash">CommandCode: DeepSeek-V4-Flash (Deep Reasoning)</option>
+                <option value="deepseek/deepseek-r1">CommandCode: DeepSeek-R1 (Chain-of-Thought)</option>
+                <option value="cerebras_llama_3.3_70b">Cerebras: Llama-3.3-70B (~25ms WSE-3)</option>
+                <option value="cerebras_llama_3.1_8b">Cerebras: Llama-3.1-8B (~15ms WSE-3)</option>
                 <option value="qwen/qwen-2.5-7b-instruct">OpenRouter: Qwen 2.5 7B (~85ms)</option>
-                <option value="qwen/qwen-2.5-3b-instruct">OpenRouter: Qwen 2.5 3B (~55ms)</option>
-                <option value="qwen/qwen-3-4b">OpenRouter: Qwen 3 4B (~65ms)</option>
-                <option value="gpt-oss-120b">Cerebras: GPT-OSS-120B (~20ms)</option>
-                <option value="cerebras_llama_3.3_70b">Cerebras: Llama-3.3-70B (~25ms)</option>
-                <option value="groq_llama_3.3_70b">Groq: Llama-3.3-70B-Versatile (~65ms)</option>
                 <option value="gpt-4o-mini">OpenAI: GPT-4o-Mini (~300ms)</option>
                 <option value="local_fast">Local Fast Synthesizer (&lt;1ms)</option>
               </select>
@@ -188,7 +188,7 @@
 
             <div class="input-actions-row">
               <div class="actions-left">
-                <button class="btn btn-action-sub btn-record" id="mainRecordBtn" onclick="toggleVoiceRecord()">
+                <button class="btn btn-action-sub btn-record" id="mainRecordBtn">
                   <i data-lucide="mic"></i>
                   <span id="mainRecordText">Record Voice</span>
                 </button>

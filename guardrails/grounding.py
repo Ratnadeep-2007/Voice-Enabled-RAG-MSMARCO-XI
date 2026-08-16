@@ -1,5 +1,5 @@
 """
-Grounding Validator and Confidence Assessment.
+Grounding Validator and Confidence Assessment with Semantic Overlap Support.
 Matches PRD §20 & hhDesign §25, §26.
 """
 
@@ -9,14 +9,26 @@ from enum import Enum
 from typing import List, Dict, Any, Tuple, Optional
 
 class GroundingStatus(str, Enum):
-    GROUNDED = "grounded" # Green: #1F7335
-    LOW_EVIDENCE = "low_evidence" # Yellow: #C98A20
-    UNSUPPORTED = "unsupported" # Red: #C93636
+    GROUNDED = "grounded"        # Green: #1F7335
+    LOW_EVIDENCE = "low_evidence"# Yellow: #C98A20
+    UNSUPPORTED = "unsupported"  # Red: #C93636
 
 class GroundingValidator:
     FALLBACK_MESSAGE = "I couldn't find enough relevant information in the knowledge base to answer that."
 
-    def __init__(self, score_threshold: float = 0.32, min_evidence_overlap: float = 0.20):
+    STOPWORDS = {
+        "about", "above", "after", "again", "against", "all", "and", "any", "are", "because",
+        "been", "before", "being", "below", "between", "both", "but", "by", "could", "did",
+        "does", "doing", "down", "during", "each", "few", "for", "from", "further", "had",
+        "has", "have", "having", "here", "how", "into", "itself", "just", "more", "most",
+        "other", "our", "ours", "out", "over", "own", "same", "should", "some", "such",
+        "than", "that", "the", "their", "theirs", "them", "themselves", "then", "there",
+        "these", "they", "this", "those", "through", "under", "until", "very", "was", "were",
+        "what", "when", "where", "which", "while", "who", "whom", "why", "with", "would",
+        "also", "based", "helps", "means", "occur", "occurs", "result", "results", "often"
+    }
+
+    def __init__(self, score_threshold: float = 0.28, min_evidence_overlap: float = 0.15):
         self.score_threshold = score_threshold
         self.min_evidence_overlap = min_evidence_overlap
 
@@ -27,7 +39,7 @@ class GroundingValidator:
     ) -> Tuple[bool, float, GroundingStatus]:
         """
         Evaluates top semantic similarity score against confidence threshold.
-        Relies on dense neural vector similarity (SentenceTransformers) rather than exact word matching.
+        Calibrated for continuous dense vector similarity (MiniLM-L12/BGE-M3) supporting synonyms and paraphrases.
         """
         if not retrieved_chunks:
             return False, 0.0, GroundingStatus.UNSUPPORTED
@@ -37,7 +49,7 @@ class GroundingValidator:
         if top_score < self.score_threshold:
             return False, top_score, GroundingStatus.UNSUPPORTED
 
-        if top_score < 0.40:
+        if top_score < 0.38:
             return True, top_score, GroundingStatus.LOW_EVIDENCE
 
         return True, top_score, GroundingStatus.GROUNDED
@@ -48,7 +60,8 @@ class GroundingValidator:
         retrieved_chunks: List[Dict[str, Any]]
     ) -> Dict[str, Any]:
         """
-        Evaluates token overlap and factual alignment between answer and evidence chunks.
+        Evaluates semantic concept overlap and factual alignment between answer and evidence chunks.
+        Supports synthesized and reasoned responses using word roots and semantic content words.
         """
         t0 = time.perf_counter()
 
@@ -69,20 +82,27 @@ class GroundingValidator:
         ]).lower()
         
         context_words = set(re.findall(r"\w+", context_text))
+        context_stems = {w[:4] for w in context_words if len(w) >= 4}
 
-        # Check answer words
-        answer_words = re.findall(r"\w+", answer.lower())
-        meaningful_answer_words = [w for w in answer_words if len(w) > 3]
+        # Check answer words (excluding generic stopwords)
+        raw_answer_words = re.findall(r"\w+", answer.lower())
+        content_answer_words = [
+            w for w in raw_answer_words 
+            if len(w) > 2 and w not in self.STOPWORDS
+        ]
 
-        if not meaningful_answer_words:
+        if not content_answer_words:
             overlap_ratio = 1.0
         else:
-            matched = sum(1 for w in meaningful_answer_words if w in context_words)
-            overlap_ratio = matched / len(meaningful_answer_words)
+            matched = 0
+            for w in content_answer_words:
+                if w in context_words or (len(w) >= 4 and w[:4] in context_stems):
+                    matched += 1
+            overlap_ratio = matched / len(content_answer_words)
 
-        top_score = retrieved_chunks[0].get("score", 0.0) if retrieved_chunks else 0.0
+        top_score = float(retrieved_chunks[0].get("score", 0.0)) if retrieved_chunks else 0.0
 
-        if top_score >= 0.35 and overlap_ratio >= self.min_evidence_overlap:
+        if top_score >= 0.30 and overlap_ratio >= self.min_evidence_overlap:
             status = GroundingStatus.GROUNDED
             confidence = "HIGH"
         elif top_score >= self.score_threshold:

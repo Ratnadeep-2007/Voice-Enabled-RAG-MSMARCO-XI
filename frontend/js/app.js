@@ -83,6 +83,9 @@ document.addEventListener('DOMContentLoaded', () => {
       if (mainRecordBtn) {
         mainRecordBtn.classList.add('recording');
         mainRecordText.textContent = 'Stop Recording';
+        // Swap icon to mic-off to clearly show active state
+        const icon = mainRecordBtn.querySelector('i[data-lucide]');
+        if (icon) { icon.setAttribute('data-lucide', 'mic-off'); if (window.lucide) lucide.createIcons(); }
       }
       if (heroMicStatus) heroMicStatus.textContent = '● LISTENING...';
       if (heroMicPrompt) heroMicPrompt.textContent = 'LISTENING...';
@@ -137,6 +140,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (mainRecordBtn) {
       mainRecordBtn.classList.remove('recording');
       mainRecordText.textContent = 'Record Voice';
+      // Restore mic icon
+      const icon = mainRecordBtn.querySelector('i[data-lucide]');
+      if (icon) { icon.setAttribute('data-lucide', 'mic'); if (window.lucide) lucide.createIcons(); }
     }
     if (heroMicStatus) heroMicStatus.textContent = '● PROCESSING...';
     if (heroMicPrompt) heroMicPrompt.textContent = 'PROCESSING...';
@@ -163,22 +169,19 @@ document.addEventListener('DOMContentLoaded', () => {
       recognition.onstart = () => {
         state.isRecording = true;
         if (heroMicBtn) heroMicBtn.classList.add('recording');
-        if (heroMicStatus) heroMicStatus.textContent = '● LISTENING...';
+        if (heroMicStatus) heroMicStatus.textContent = '● LISTENING (Browser STT)...';
       };
 
       recognition.onresult = (event) => {
         const transcript = event.results[0][0].transcript;
         if (queryInput) queryInput.value = transcript;
         stopRecording();
-        executeQuery(transcript);
+        executeQuery(transcript, state.currentLanguage);
       };
 
-      recognition.onerror = () => {
+      recognition.onerror = (e) => {
         stopRecording();
-        if (queryInput && !queryInput.value) {
-          queryInput.value = "What is the best way to improve sleep?";
-          executeQuery(queryInput.value);
-        }
+        console.warn('Speech recognition error/cancelled:', e);
       };
 
       recognition.onend = () => {
@@ -187,11 +190,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       recognition.start();
     } else {
-      // Fallback preset query
-      if (queryInput && !queryInput.value) {
-        queryInput.value = "What is the best way to improve sleep?";
-      }
-      executeQuery(queryInput.value);
+      alert('Microphone access is not supported or was blocked by browser. Please type your query directly.');
     }
   }
 
@@ -259,7 +258,12 @@ document.addEventListener('DOMContentLoaded', () => {
     executeQuery(query, state.currentLanguage);
   };
 
+  let _toggleDebounce = false;
   window.toggleVoiceRecord = function() {
+    if (_toggleDebounce) return;
+    _toggleDebounce = true;
+    setTimeout(() => { _toggleDebounce = false; }, 300);
+
     if (state.isRecording) {
       stopRecording();
     } else {
@@ -267,7 +271,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-  // Mic Button Event Listeners (supports click toggle & hold)
+  // Mic Button Event Listeners — only addEventListener, no inline onclick in HTML
   if (heroMicBtn) {
     heroMicBtn.addEventListener('click', window.toggleVoiceRecord);
   }
@@ -324,6 +328,9 @@ document.addEventListener('DOMContentLoaded', () => {
     formData.append('context_format', contextFormatSelect ? contextFormatSelect.value : 'json');
     formData.append('use_hybrid', hybridToggle ? hybridToggle.checked : false);
     formData.append('language', state.currentLanguage);
+    // Include selected model so audio queries use the same model as text queries
+    const modelSel = document.getElementById('modelSelector');
+    if (modelSel && modelSel.value) formData.append('model', modelSel.value);
 
     animatePipelineRunning();
 
@@ -332,11 +339,19 @@ document.addEventListener('DOMContentLoaded', () => {
         method: 'POST',
         body: formData
       });
+      if (!resp.ok) {
+        throw new Error(`HTTP ${resp.status}`);
+      }
       const data = await resp.json();
+      // Populate text box with actual transcribed speech from Sarvam STT
+      if (data.query && queryInput) {
+        queryInput.value = data.query;
+      }
       renderResponse(data);
     } catch (err) {
       console.error('Error uploading audio:', err);
-      executeQuery(queryInput ? queryInput.value : 'What is the best way to improve sleep?');
+      if (heroMicStatus) heroMicStatus.textContent = '● AUDIO ERROR';
+      alert('Audio processing failed or no speech was audible. You can also type your query directly.');
     }
   }
 

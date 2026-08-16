@@ -1,15 +1,22 @@
 """
 VoiceRAG End-to-End Orchestrator Pipeline.
-Coordinates STT -> Embedding -> Qdrant HNSW -> Context Builder -> Fast LLM -> Grounding.
+Coordinates STT -> Multilingual Embedding -> FAISS/Qdrant Retrieval -> Context Builder -> Fast LLM Reasoning -> Grounding.
 Calculates exact stage timings, retrieval-path latency (<200ms bound), and full-pipeline telemetry.
 Matches PRD §7, §21, §22, §28, §29 and hhDesign §14, §16, §18, §36.
 """
 
+import os
 import time
 import uuid
 import datetime
 import logging
 from typing import Dict, Any, Optional, List
+from dotenv import load_dotenv
+
+# Ensure .env is loaded from workspace root
+env_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".env"))
+if os.path.exists(env_path):
+    load_dotenv(env_path)
 
 from speech.sarvam_stt import SarvamSTTClient, get_speech_client
 from embeddings.model import EmbeddingEngine, get_embedding_engine
@@ -29,7 +36,7 @@ class VoiceRAGPipeline:
     def __init__(
         self,
         collection_name: str = "msmarco_xi_dense",
-        score_threshold: float = 0.32,
+        score_threshold: float = 0.28,
         default_top_k: int = 5,
         default_ef_search: int = 32
     ):
@@ -246,7 +253,7 @@ class VoiceRAGPipeline:
         # -------------------------------------------------------------
         has_confidence, top_score, initial_grounding = self.grounding_validator.validate_retrieval_confidence(raw_results, query=query)
         
-        # Filter duplicates or low scores
+        # Filter duplicates
         filtered_chunks = RelevanceFilter.deduplicate(raw_results) if has_confidence else []
 
         # -------------------------------------------------------------
@@ -274,7 +281,7 @@ class VoiceRAGPipeline:
         timings["retrieval_path_ms"] = retrieval_path_ms
 
         # -------------------------------------------------------------
-        # 7. Low-Latency LLM Generation
+        # 7. Low-Latency LLM Generation & Reasoning
         # -------------------------------------------------------------
         if not has_confidence or not filtered_chunks:
             # Fallback if no relevant evidence exists in corpus
@@ -368,8 +375,8 @@ class VoiceRAGPipeline:
 # Global singleton instance
 _rag_pipeline: Optional[VoiceRAGPipeline] = None
 
-def get_rag_pipeline() -> VoiceRAGPipeline:
+def get_rag_pipeline(force_reload: bool = False) -> VoiceRAGPipeline:
     global _rag_pipeline
-    if _rag_pipeline is None:
+    if _rag_pipeline is None or force_reload:
         _rag_pipeline = VoiceRAGPipeline()
     return _rag_pipeline

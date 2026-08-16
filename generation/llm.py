@@ -1,15 +1,23 @@
 """
 Low-Latency LLM Generation Service.
-Supports hosted fast APIs (Groq, OpenAI, Gemini) and local high-speed grounded synthesis fallback.
+Supports high-speed reasoning APIs (Groq LPU, CommandCode AI, Cerebras WSE-3, OpenRouter, OpenAI) with automatic multi-provider failover.
+Default: Groq llama-3.1-8b-instant for sub-200ms total pipeline latency.
 Matches PRD §19 & hhDesign §23.
 """
 
 import os
+import sys
 import time
 import json
 import logging
 from typing import Dict, Any, Optional, List
 import httpx
+from dotenv import load_dotenv
+
+# Ensure .env is loaded from workspace root
+env_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".env"))
+if os.path.exists(env_path):
+    load_dotenv(env_path, override=False)
 
 logger = logging.getLogger(__name__)
 
@@ -19,31 +27,30 @@ class FastLLMGenerator:
         provider: str = "fast_llm",
         api_key: Optional[str] = None,
         model: Optional[str] = None,
-        max_tokens: int = 90,
-        temperature: float = 0.1,
-        timeout: float = 2.5
+        max_tokens: int = 180,
+        temperature: float = 0.2,
+        timeout: float = 5.0
     ):
-        self.provider_choice = os.getenv("LLM_PROVIDER", "groq").strip().lower()
-        self.cerebras_key = os.getenv("CEREBRAS_API_KEY", "").strip()
         self.groq_key = os.getenv("GROQ_API_KEY", "").strip()
+        self.cmd_key = (os.getenv("CMD_API_KEY", "") or os.getenv("COMMANDCODE_API_KEY", "")).strip()
+        self.cmd_model = os.getenv("COMMANDCODE_MODEL", "deepseek/deepseek-v4-flash").strip()
+        self.cerebras_key = os.getenv("CEREBRAS_API_KEY", "").strip()
         self.openrouter_key = os.getenv("OPENROUTER_API_KEY", "").strip()
         self.openai_key = os.getenv("OPENAI_API_KEY", "").strip()
         self.generic_key = os.getenv("LLM_API_KEY", "").strip()
-        
-        # Select active API key and provider
-        if self.provider_choice == "openrouter" and self.openrouter_key:
-            self.provider = "openrouter"
-            self.api_key = self.openrouter_key
-            self.model = model or "qwen/qwen-2.5-7b-instruct"
-        elif self.provider_choice == "groq" and self.groq_key:
+        self.provider_choice = os.getenv("LLM_PROVIDER", "groq").strip().lower()
+
+        # --- Primary provider selection based on LLM_PROVIDER ---
+        # groq llama-3.1-8b-instant = ~160-220ms end-to-end (sub-200ms target)
+        if self.provider_choice == "groq" and self.groq_key:
             self.provider = "groq"
             self.api_key = self.groq_key
             self.model = model or os.getenv("GROQ_MODEL", "llama-3.1-8b-instant")
+        elif self.provider_choice in ("commandcode", "cmd") and self.cmd_key:
+            self.provider = "commandcode"
+            self.api_key = self.cmd_key
+            self.model = model or self.cmd_model
         elif self.provider_choice == "cerebras" and self.cerebras_key:
-            self.provider = "cerebras"
-            self.api_key = self.cerebras_key
-            self.model = model or os.getenv("CEREBRAS_MODEL", "gpt-oss-120b")
-        elif self.cerebras_key:
             self.provider = "cerebras"
             self.api_key = self.cerebras_key
             self.model = model or os.getenv("CEREBRAS_MODEL", "gpt-oss-120b")
@@ -51,10 +58,18 @@ class FastLLMGenerator:
             self.provider = "groq"
             self.api_key = self.groq_key
             self.model = model or os.getenv("GROQ_MODEL", "llama-3.1-8b-instant")
+        elif self.cmd_key:
+            self.provider = "commandcode"
+            self.api_key = self.cmd_key
+            self.model = model or self.cmd_model
         elif self.openrouter_key:
             self.provider = "openrouter"
             self.api_key = self.openrouter_key
-            self.model = model or "qwen/qwen-2.5-7b-instruct"
+            self.model = model or os.getenv("OPENROUTER_MODEL", "qwen/qwen-2.5-7b-instruct")
+        elif self.cerebras_key:
+            self.provider = "cerebras"
+            self.api_key = self.cerebras_key
+            self.model = model or os.getenv("CEREBRAS_MODEL", "gpt-oss-120b")
         elif self.openai_key:
             self.provider = "openai"
             self.api_key = self.openai_key
@@ -67,8 +82,8 @@ class FastLLMGenerator:
         self.max_tokens = max_tokens
         self.temperature = temperature
         self.timeout = timeout
-        
-        # Persistent HTTP client with connection pooling & keep-alive
+
+        # Persistent HTTP client with aggressive keep-alive for sub-200ms latency
         limits = httpx.Limits(max_keepalive_connections=20, max_connections=50, keepalive_expiry=60.0)
         self._http_client = httpx.Client(timeout=self.timeout, limits=limits)
 
@@ -78,27 +93,50 @@ class FastLLMGenerator:
         retrieved_chunks: List[Dict[str, Any]]
     ) -> str:
         """
-        Ultra-fast local grounded response synthesizer (<10ms).
-        Synthesizes concise answers strictly extracted and normalized from top supporting chunks.
+        Local grounded response synthesizer fallback when external APIs are unreachable.
+        Synthesizes a clean informative answer based on top supporting context.
         """
         if not retrieved_chunks:
             return "I couldn't find enough relevant information in the knowledge base to answer that."
-
         top_chunk = retrieved_chunks[0].get("payload", {})
-        passage = top_chunk.get("text", "")
-        title = top_chunk.get("title", "")
-
-        # Split passage into key sentences
-        sentences = [s.strip() for s in passage.replace("।", ".").split(".") if s.strip()]
+        passage = top_chunk.get("text", "").strip()
+        if not passage:
+            return "I couldn't find enough relevant information in the knowledge base to answer that."
+        sentences = [s.strip() for s in passage.replace("।", ".").split(".") if len(s.strip()) > 10]
         if not sentences:
             return passage
-
-        # Pick the most relevant sentences
-        selected = sentences[:3]
-        grounded_answer = ". ".join(selected)
+        grounded_answer = ". ".join(sentences[:2])
         if not grounded_answer.endswith("."):
             grounded_answer += "."
         return grounded_answer
+
+    def _call_provider_api(
+        self,
+        url: str,
+        headers: Dict[str, str],
+        model_name: str,
+        system_prompt: str,
+        user_prompt: str
+    ) -> Optional[str]:
+        """Executes HTTP chat completion request against a specific provider."""
+        # For reasoning/thinking models (DeepSeek), allocate extra token budget for reasoning tokens
+        effective_max_tokens = max(512, self.max_tokens) if "deepseek" in model_name.lower() else self.max_tokens
+        body = {
+            "model": model_name,
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
+            ],
+            "max_tokens": effective_max_tokens,
+            "temperature": self.temperature
+        }
+        resp = self._http_client.post(url, headers=headers, json=body)
+        if resp.status_code == 200:
+            data = resp.json()
+            return data["choices"][0]["message"]["content"].strip()
+        else:
+            logger.warning(f"Provider {url} ({model_name}) returned status {resp.status_code}: {resp.text[:200]}")
+            return None
 
     def generate(
         self,
@@ -109,11 +147,14 @@ class FastLLMGenerator:
         model_override: Optional[str] = None
     ) -> Dict[str, Any]:
         """
-        Executes generation on Groq / Cerebras / OpenAI or local fallback with microsecond telemetry.
+        Executes generation across Groq / CommandCode / Cerebras / OpenRouter / OpenAI
+        with microsecond telemetry and automatic multi-provider failover.
+        Default target: sub-200ms total pipeline latency with llama-3.1-8b-instant on Groq LPU.
         """
         t0 = time.perf_counter()
         target_model = (model_override or self.model).strip()
 
+        # Local fast synthesizer — zero network, <1ms
         if target_model == "local_fast":
             local_ans = self._local_grounded_synthesis(query, retrieved_chunks)
             latency_ms = (time.perf_counter() - t0) * 1000.0
@@ -125,96 +166,104 @@ class FastLLMGenerator:
                 "status": "success"
             }
 
-        # Resolve provider based on target_model or active API keys
-        active_key = self.api_key
-        headers = {
-            "Content-Type": "application/json"
-        }
+        candidates = []
 
+        # 1. Groq LPU — fastest cloud inference, primary sub-200ms path
+        if "8b" in target_model or "instant" in target_model or "llama-3.1" in target_model or "groq" in target_model:
+            if self.groq_key:
+                candidates.append(("https://api.groq.com/openai/v1/chat/completions",
+                    {"Authorization": f"Bearer {self.groq_key}", "Content-Type": "application/json"},
+                    "llama-3.1-8b-instant", "groq_lpu"))
+        if "70b" in target_model or "llama-3.3" in target_model or "versatile" in target_model:
+            if self.groq_key:
+                candidates.append(("https://api.groq.com/openai/v1/chat/completions",
+                    {"Authorization": f"Bearer {self.groq_key}", "Content-Type": "application/json"},
+                    "llama-3.3-70b-versatile", "groq_lpu"))
+
+        # 2. CommandCode AI (DeepSeek V4 Flash / R1 — deep reasoning, higher latency ~3-5s)
+        if "deepseek" in target_model or "commandcode" in target_model:
+            if self.cmd_key:
+                c_model = target_model if "/" in target_model and "deepseek" in target_model else self.cmd_model
+                candidates.append(("https://api.commandcode.ai/provider/v1/chat/completions",
+                    {"Authorization": f"Bearer {self.cmd_key}", "Content-Type": "application/json"},
+                    c_model, "commandcode_ai"))
+
+        # 3. Cerebras WSE-3 (if active key)
+        if "cerebras" in target_model or "gpt-oss" in target_model:
+            if self.cerebras_key:
+                candidates.append(("https://api.cerebras.ai/v1/chat/completions",
+                    {"Authorization": f"Bearer {self.cerebras_key}", "Content-Type": "application/json"},
+                    "gpt-oss-120b", "cerebras_wse3"))
+
+        # 4. OpenRouter (Qwen 2.5 multilingual)
         if "qwen" in target_model:
-            url = "https://openrouter.ai/api/v1/chat/completions"
-            provider_name = "openrouter"
-            active_key = self.openrouter_key or self.api_key
-            headers["HTTP-Referer"] = "https://github.com/Ratnadeep-2007/Voice-Enabled-RAG-MSMARCO-XI"
-            headers["X-Title"] = "VoiceRAG Indic MSMARCO"
-            if "qwen-3" in target_model or "qwen3" in target_model or "4b" in target_model:
-                target_model = "qwen/qwen-2.5-7b-instruct" # Standard fast 7B/3B on OpenRouter
-            elif not target_model.startswith("qwen/"):
-                target_model = f"qwen/{target_model}"
-        elif "gpt-oss" in target_model or target_model == "cerebras_gpt_oss_120b":
-            url = "https://api.cerebras.ai/v1/chat/completions"
-            provider_name = "cerebras_lpu"
-            active_key = self.cerebras_key or self.api_key
-            target_model = "gpt-oss-120b"
-        elif target_model == "cerebras_llama_3.3_70b":
-            url = "https://api.cerebras.ai/v1/chat/completions"
-            provider_name = "cerebras_lpu"
-            active_key = self.cerebras_key or self.api_key
-            target_model = "llama-3.3-70b"
-        elif target_model == "groq_llama_3.3_70b":
-            url = "https://api.groq.com/openai/v1/chat/completions"
-            provider_name = "groq_lpu"
-            active_key = self.groq_key or self.api_key
-            target_model = "llama-3.3-70b-versatile"
-        elif "llama-3.1" in target_model or target_model == "groq_llama_3.1_8b":
-            url = "https://api.groq.com/openai/v1/chat/completions"
-            provider_name = "groq_lpu"
-            active_key = self.groq_key or self.api_key
-            target_model = "llama-3.1-8b-instant"
-        elif "gpt-4" in target_model:
-            url = "https://api.openai.com/v1/chat/completions"
-            provider_name = "openai"
-            active_key = self.openai_key or self.api_key
-            target_model = "gpt-4o-mini"
-        else:
-            if self.groq_key or active_key.startswith("gsk_"):
-                url = "https://api.groq.com/openai/v1/chat/completions"
-                provider_name = "groq_lpu"
-            elif self.cerebras_key or active_key.startswith("csk-") or active_key.startswith("csk_"):
-                url = "https://api.cerebras.ai/v1/chat/completions"
-                provider_name = "cerebras_lpu"
-            elif self.openrouter_key or active_key.startswith("sk-or-"):
-                url = "https://openrouter.ai/api/v1/chat/completions"
-                provider_name = "openrouter"
-                headers["HTTP-Referer"] = "https://github.com/Ratnadeep-2007/Voice-Enabled-RAG-MSMARCO-XI"
-                headers["X-Title"] = "VoiceRAG Indic MSMARCO"
-            else:
-                url = "https://api.openai.com/v1/chat/completions"
-                provider_name = "openai"
+            if self.openrouter_key:
+                candidates.append(("https://openrouter.ai/api/v1/chat/completions",
+                    {"Authorization": f"Bearer {self.openrouter_key}", "Content-Type": "application/json",
+                     "HTTP-Referer": "https://github.com/Ratnadeep-2007/Voice-Enabled-RAG-MSMARCO-XI",
+                     "X-Title": "VoiceRAG Indic MSMARCO"},
+                    "qwen/qwen-2.5-7b-instruct", "openrouter"))
 
-        # Check for external API key
-        if active_key and len(active_key) > 8:
+        # 5. OpenAI
+        if "gpt-4" in target_model:
+            if self.openai_key:
+                candidates.append(("https://api.openai.com/v1/chat/completions",
+                    {"Authorization": f"Bearer {self.openai_key}", "Content-Type": "application/json"},
+                    "gpt-4o-mini", "openai"))
+
+        # --- Failover chain: Groq 8B → Groq 70B → CommandCode → OpenRouter → OpenAI ---
+        if self.groq_key:
+            candidates.append(("https://api.groq.com/openai/v1/chat/completions",
+                {"Authorization": f"Bearer {self.groq_key}", "Content-Type": "application/json"},
+                "llama-3.1-8b-instant", "groq_lpu"))
+            candidates.append(("https://api.groq.com/openai/v1/chat/completions",
+                {"Authorization": f"Bearer {self.groq_key}", "Content-Type": "application/json"},
+                "llama-3.3-70b-versatile", "groq_lpu"))
+        if self.cmd_key:
+            candidates.append(("https://api.commandcode.ai/provider/v1/chat/completions",
+                {"Authorization": f"Bearer {self.cmd_key}", "Content-Type": "application/json"},
+                self.cmd_model, "commandcode_ai"))
+        if self.cerebras_key:
+            candidates.append(("https://api.cerebras.ai/v1/chat/completions",
+                {"Authorization": f"Bearer {self.cerebras_key}", "Content-Type": "application/json"},
+                "gpt-oss-120b", "cerebras_wse3"))
+        if self.openrouter_key:
+            candidates.append(("https://openrouter.ai/api/v1/chat/completions",
+                {"Authorization": f"Bearer {self.openrouter_key}", "Content-Type": "application/json",
+                 "HTTP-Referer": "https://github.com/Ratnadeep-2007/Voice-Enabled-RAG-MSMARCO-XI",
+                 "X-Title": "VoiceRAG Indic MSMARCO"},
+                "qwen/qwen-2.5-7b-instruct", "openrouter"))
+        if self.openai_key:
+            candidates.append(("https://api.openai.com/v1/chat/completions",
+                {"Authorization": f"Bearer {self.openai_key}", "Content-Type": "application/json"},
+                "gpt-4o-mini", "openai"))
+
+        # Deduplicate while preserving priority order
+        seen = set()
+        dedup_candidates = []
+        for c in candidates:
+            key = (c[0], c[2])
+            if key not in seen:
+                seen.add(key)
+                dedup_candidates.append(c)
+
+        # Execute providers in sequence, return on first success
+        for url, headers, model_name, provider_name in dedup_candidates:
             try:
-                headers["Authorization"] = f"Bearer {active_key}"
-                body = {
-                    "model": target_model,
-                    "messages": [
-                        {"role": "system", "content": system_prompt},
-                        {"role": "user", "content": user_prompt}
-                    ],
-                    "max_tokens": self.max_tokens,
-                    "temperature": self.temperature
-                }
-
-                # Reuse warm keep-alive connection
-                resp = self._http_client.post(url, headers=headers, json=body)
-                latency_ms = (time.perf_counter() - t0) * 1000.0
-                if resp.status_code == 200:
-                    data = resp.json()
-                    answer = data["choices"][0]["message"]["content"].strip()
+                ans = self._call_provider_api(url, headers, model_name, system_prompt, user_prompt)
+                if ans:
+                    latency_ms = (time.perf_counter() - t0) * 1000.0
                     return {
-                        "answer": answer,
+                        "answer": ans,
                         "latency_ms": round(latency_ms, 2),
                         "provider": provider_name,
-                        "model": target_model,
+                        "model": model_name,
                         "status": "success"
                     }
-                else:
-                    logger.warning(f"LLM API ({provider_name}) returned {resp.status_code}: {resp.text}")
             except Exception as e:
-                logger.error(f"Error connecting to LLM API: {e}")
+                logger.warning(f"Error calling {provider_name} ({model_name}): {e}")
 
-        # High-speed local grounded synthesis fallback (<10ms)
+        # Local grounded synthesis fallback (zero-network)
         local_ans = self._local_grounded_synthesis(query, retrieved_chunks)
         latency_ms = (time.perf_counter() - t0) * 1000.0
         return {

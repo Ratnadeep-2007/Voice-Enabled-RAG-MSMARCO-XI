@@ -54,10 +54,11 @@ class FAISSRetriever:
         self,
         query_vector: List[float],
         top_k: int = 5,
-        score_threshold: float = 0.30
+        score_threshold: float = 0.25
     ) -> Dict[str, Any]:
         """
         Executes sub-2ms vector search in FAISS and zero-copy lookup in LMDB.
+        Threshold 0.25 accommodates paraphrases and synonyms in multilingual semantic space.
         """
         if self.index is None:
             self._load_index()
@@ -114,10 +115,15 @@ class FAISSRetriever:
             "status": "success"
         }
 
+    def reload(self):
+        """Reloads FAISS index and LMDB store from disk."""
+        self._load_index()
+        self.lmdb_store = get_lmdb_store(db_path=self.lmdb_path)
+
 _faiss_retriever_instance: Optional[FAISSRetriever] = None
 
-def get_faiss_retriever() -> FAISSRetriever:
+def get_faiss_retriever(force_reload: bool = False) -> FAISSRetriever:
     global _faiss_retriever_instance
-    if _faiss_retriever_instance is None:
+    if _faiss_retriever_instance is None or force_reload:
         _faiss_retriever_instance = FAISSRetriever()
     return _faiss_retriever_instance

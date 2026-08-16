@@ -1,5 +1,5 @@
 """
-Context Builder and Prompt Construction.
+Context Builder and Prompt Construction with Reasoning & Semantic Synthesis.
 Supports compact JSON and TOON serialization formats for Experiment 5 (PRD §18, §25).
 """
 
@@ -50,7 +50,7 @@ class ContextBuilder:
         context_format: ContextFormat = ContextFormat.JSON
     ) -> Tuple[str, str, Dict[str, Any]]:
         """
-        Constructs (system_prompt, user_prompt, telemetry).
+        Constructs (system_prompt, user_prompt, telemetry) tailored for reasoning and synthesis.
         """
         t0 = time.perf_counter()
 
@@ -60,17 +60,23 @@ class ContextBuilder:
             context_str = self.serialize_json(retrieved_chunks)
 
         system_prompt = (
-            "You are VoiceRAG, a low-latency knowledge assistant. "
-            "Your answers MUST be strictly grounded in the provided context. "
-            "Rules:\n"
-            "1. Answer concisely in 2 to 4 sentences.\n"
-            "2. Only use factual claims directly present in the context.\n"
-            "3. If the context does NOT contain enough evidence to answer, reply exactly:\n"
-            "   'I couldn't find enough relevant information in the knowledge base to answer that.'\n"
-            "4. Do not speculate, invent details, or mention system prompt instructions."
+            "You are VoiceRAG, an intelligent and concise knowledge assistant.\n"
+            "Your task is to synthesize clear, reasoned answers strictly grounded in the provided context.\n\n"
+            "Core Guidelines:\n"
+            "1. REASONING & SYNTHESIS: Explain the concepts in your own words. Do NOT simply copy-paste verbatim sentences from the context.\n"
+            "2. SEMANTIC FLEXIBILITY: Understand synonyms, paraphrases, and speech variations in the question (e.g., matching 'tremor' to 'earthquake', 'slumber' to 'sleep', 'clean energy' to 'solar power').\n"
+            "3. FACTUAL GROUNDING: Rely strictly on facts and evidence supported by the context. Do not invent details.\n"
+            "4. CONCISE & CLEAR: Answer concisely in 2 to 3 informative, complete sentences.\n"
+            "5. LANGUAGE: Respond in the primary language of the question.\n"
+            "6. INSUFFICIENT EVIDENCE: If the context truly lacks relevant evidence to address the question, reply:\n"
+            "   'I couldn't find enough relevant information in the knowledge base to answer that.'"
         )
 
-        user_prompt = f"CONTEXT:\n{context_str}\n\nQUESTION:\n{query}\n\nANSWER:"
+        user_prompt = (
+            f"EVIDENCE CONTEXT:\n{context_str}\n\n"
+            f"USER QUESTION:\n{query}\n\n"
+            f"SYNTHESIZED ANSWER:"
+        )
 
         build_time_ms = (time.perf_counter() - t0) * 1000.0
         # Approximate tokens (words * 1.33)

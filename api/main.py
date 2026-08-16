@@ -14,23 +14,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel, Field
+from dotenv import load_dotenv
 
-# Ensure project root is in sys.path
+# Ensure project root is in sys.path and load .env
 root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, root_dir)
-
-# Load .env variables if present
 env_file = os.path.join(root_dir, ".env")
 if os.path.exists(env_file):
-    try:
-        with open(env_file, "r", encoding="utf-8") as f:
-            for line in f:
-                line = line.strip()
-                if line and not line.startswith("#") and "=" in line:
-                    k, v = line.split("=", 1)
-                    os.environ.setdefault(k.strip(), v.strip().strip("'\""))
-    except Exception:
-        pass
+    load_dotenv(env_file, override=True)
 
 from orchestration.pipeline import VoiceRAGPipeline, get_rag_pipeline
 from indexing.index_dataset import OfflineIndexer
@@ -47,7 +38,7 @@ logger = logging.getLogger("VoiceRAG_API")
 app = FastAPI(
     title="VoiceRAG API",
     description="Low-Latency Voice-Enabled Dense RAG System API",
-    version="1.1.0"
+    version="1.2.0"
 )
 
 # Enable CORS for cross-origin frontend requests
@@ -72,7 +63,7 @@ class QueryRequest(BaseModel):
     context_format: str = Field("json", description="'json' or 'toon'")
     use_hybrid: bool = Field(False, description="True for Hybrid BM25+Dense, False for Dense Baseline")
     language: Optional[str] = Field("en", description="Query language code")
-    model: Optional[str] = Field(None, description="Optional LLM model override (e.g. 'llama-3.1-8b-instant', 'gpt-oss-120b', 'llama-3.3-70b', 'gpt-4o-mini', 'local_fast')")
+    model: Optional[str] = Field(None, description="Optional LLM model override (e.g. 'llama-3.3-70b-versatile', 'llama-3.1-8b-instant', 'qwen/qwen-2.5-7b-instruct', 'gpt-4o-mini', 'local_fast')")
 
 class IndexRequest(BaseModel):
     chunking_strategy: str = Field("adaptive", description="fixed, fixed_overlap, sentence, or adaptive")
@@ -91,8 +82,15 @@ def startup_event():
 
         # Warmup pipeline to eliminate P100 cold-start delay
         logger.info("Pre-warming vector index & embedding engine for zero-cold-start cloud SLA (<200ms)...")
-        pipeline = get_rag_pipeline()
+        pipeline = get_rag_pipeline(force_reload=True)
         pipeline.process_request(query_text="warmup query for sub-200ms latency", top_k=5, ef_search=32)
+
+        # Log Sarvam STT status
+        sarvam_key = os.getenv("SARVAM_API_KEY", "")
+        if sarvam_key and len(sarvam_key) > 5:
+            logger.info(f"Sarvam STT: Configured (key length={len(sarvam_key)}) — live Indic audio transcription ACTIVE.")
+        else:
+            logger.info("Sarvam STT: No API key set — using browser Web Speech API for voice input.")
         logger.info("VoiceRAG pre-warmup completed successfully.")
     except Exception as e:
         logger.error(f"Startup indexing error: {e}")
@@ -103,7 +101,7 @@ def startup_event():
 
 @app.post("/api/query")
 async def process_text_query(req: QueryRequest):
-    """Processes a text query through the complete VoiceRAG pipeline."""
+    """Processes a text query through the complete VoiceRAG pipeline with reasoning & semantic retrieval."""
     pipeline = get_rag_pipeline()
     response = pipeline.process_request(
         query_text=req.query,
@@ -263,7 +261,6 @@ async def get_recent_traces():
 async def get_latency_telemetry():
     """Returns P50, P70, P100 metrics and time-series data for chart rendering."""
     summary = latency_tracker.get_summary_report()
-    # Provide realistic 15m/1h/24h time-series points
     timeseries = [
         {"time": "12:00", "latency_ms": 178, "target_ms": 200},
         {"time": "12:15", "latency_ms": 162, "target_ms": 200},
@@ -296,4 +293,3 @@ async def serve_architecture():
     if os.path.exists(arch_file):
         return FileResponse(arch_file)
     return {"message": "architecture.html not found."}
-
