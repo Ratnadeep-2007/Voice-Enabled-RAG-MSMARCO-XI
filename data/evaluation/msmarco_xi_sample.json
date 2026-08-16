@@ -1,142 +1,297 @@
 [
   {
-    "doc_id": "doc_health_01",
+    "doc_id": "doc_sleep_en",
     "language": "en",
     "title": "Improving Sleep Quality and Circadian Rhythms",
-    "passage": "Maintaining a consistent sleep schedule and optimizing your sleep hygiene can dramatically improve sleep quality. Going to bed and waking up at the same time every day stabilizes the body's internal circadian clock. Reducing blue light exposure and eliminating caffeine at least six hours before bedtime prevents disruptions to melatonin secretion. In addition, daily moderate aerobic exercise helps deepen slow-wave sleep, reducing nighttime awakenings and morning fatigue.",
+    "passage": "Maintaining a consistent sleep schedule and optimizing sleep hygiene can dramatically improve sleep quality. Going to bed and waking up at the same time every day stabilizes the body's internal circadian clock. Reducing blue light exposure and eliminating caffeine at least six hours before bedtime prevents disruptions to melatonin secretion. In addition, daily moderate aerobic exercise helps deepen slow-wave sleep, reducing nighttime awakenings and morning fatigue.",
     "source": "MSMARCO-XI/Health",
     "domain": "Health & Physiology",
-    "query_id": "q_sleep_01",
+    "query_id": "q_sleep_en",
     "related_query": "What is the best way to improve sleep quality?"
   },
   {
-    "doc_id": "doc_health_02",
-    "language": "en",
-    "title": "Impact of Nutrition on Cardiovascular Health",
-    "passage": "Dietary habits directly influence long-term cardiovascular health. Diets rich in dietary fiber, polyphenols, omega-3 fatty acids, and leafy green vegetables lower LDL cholesterol and reduce arterial inflammation. Limiting sodium intake to less than 2,300 milligrams per day helps regulate systolic blood pressure, decreasing the risk of hypertension and stroke.",
-    "source": "MSMARCO-XI/Health",
-    "domain": "Nutrition & Cardiology",
-    "query_id": "q_cardio_01",
-    "related_query": "How does diet affect cardiovascular health?"
+    "doc_id": "doc_sleep_hi",
+    "language": "hi",
+    "title": "नींद की गुणवत्ता और सर्कैडियन लय में सुधार",
+    "passage": "एक नियमित नींद कार्यक्रम बनाए रखना और स्लीप हाइजीन में सुधार करना नींद की गुणवत्ता को बहुत बेहतर बनाता है। प्रतिदिन एक ही समय पर सोने और जागने से शरीर की आंतरिक सर्कैडियन घड़ी स्थिर होती है। सोने से छह घंटे पहले कैफीन का सेवन बंद करने और नीली रोशनी (स्क्रीन) से बचने से मेलाटोनिन हार्मोन का स्राव ठीक रहता है। इसके अलावा, हल्का दैनिक व्यायाम गहरी नींद लाने में मदद करता है।",
+    "source": "MSMARCO-XI/Health/Hindi",
+    "domain": "Health & Physiology",
+    "query_id": "q_sleep_hi",
+    "related_query": "नींद की गुणवत्ता में सुधार करने का सबसे अच्छा तरीका क्या है?"
   },
   {
-    "doc_id": "doc_geo_01",
-    "language": "en",
-    "title": "Geological Causes of Earthquakes",
-    "passage": "Earthquakes are primarily caused by the sudden release of accumulated stress along geological fault lines in the Earth's crust. As tectonic plates grind against one another, frictional forces lock their edges. When the built-up strain overcomes the frictional resistance, seismic energy propagates through the surrounding rock in the form of body and surface waves, causing the ground shaking experienced during a quake.",
-    "source": "MSMARCO-XI/Geology",
-    "domain": "Earth Sciences",
-    "query_id": "q_earthquake_01",
-    "related_query": "What causes earthquakes?"
+    "doc_id": "doc_sleep_ta",
+    "language": "ta",
+    "title": "தூக்கத்தின் தரத்தை மேம்படுத்துதல் மற்றும் உடலின் தூக்க சுழற்சி",
+    "passage": "சீரான தூக்க அட்டவணையைப் பின்பற்றுவதும் தூக்க சுகாதாரத்தை மேம்படுத்துவதும் தூக்கத்தின் தரத்தை வெகுவாக உயர்த்தும். தினமும் ஒரே நேரத்தில் தூங்கி விழிப்பது உடலின் சர்க்காடியன் கடிகாரத்தை சீராக்குகிறது. தூங்குவதற்கு ஆறு மணி நேரத்திற்கு முன் காபி குடிப்பதைத் தவிர்ப்பதும் நீல ஒளியைக் குறைப்பதும் மெலடோனின் சுரப்பை பாதுகாக்கிறது. மிதமான உடற்பயிற்சி ஆழ்ந்த தூக்கத்தைப் பெற உதவுகிறது.",
+    "source": "MSMARCO-XI/Health/Tamil",
+    "domain": "Health & Physiology",
+    "query_id": "q_sleep_ta",
+    "related_query": "தூக்கத்தின் தரத்தை மேம்படுத்துவது எப்படி?"
   },
   {
-    "doc_id": "doc_physics_01",
-    "language": "en",
-    "title": "Principles of Quantum Computing and Qubits",
-    "passage": "Quantum computing harnesses the fundamental principles of quantum mechanics, notably superposition and entanglement, to perform complex computations exponentially faster than classical computers for specific problem classes. Unlike classical bits that exist strictly as 0 or 1, quantum bits (qubits) can exist in a superposition of both states simultaneously, enabling massive parallel computational state exploration.",
-    "source": "MSMARCO-XI/Science",
-    "domain": "Physics & Computing",
-    "query_id": "q_quantum_01",
-    "related_query": "How do quantum computers work and what are qubits?"
+    "doc_id": "doc_sleep_te",
+    "language": "te",
+    "title": "నిద్ర నాణ్యతను మెరుగుపరచడం మరియు సిర్కాడియన్ రిథమ్",
+    "passage": "క్రమబద్ధమైన నిద్ర సమయాలను పాటించడం మరియు సరైన నిద్ర పరిశుభ్రత అలవాట్లు నిద్ర నాణ్యతను గణనీయంగా పెంచుతాయి. ప్రతిరోజూ ఒకే సమయానికి నిద్రపోవడం వలన శరీర జీవ గడియారం స్థిరపడుతుంది. పడుకోవడానికి ఆరు గంటల ముందు కెఫిన్ తీసుకోకపోవడం మరియు స్క్రీన్ బ్లూ లైట్ తగ్గించడం వల్ల మెలటోనిన్ హార్మోన్ ఉత్పత్తి మెరుగవుతుంది.",
+    "source": "MSMARCO-XI/Health/Telugu",
+    "domain": "Health & Physiology",
+    "query_id": "q_sleep_te",
+    "related_query": "మంచి నిద్ర కోసం ఏమి చేయాలి?"
   },
   {
-    "doc_id": "doc_tech_01",
-    "language": "en",
-    "title": "HNSW and Vector Indexing for Approximate Nearest Neighbors",
-    "passage": "Hierarchical Navigable Small World (HNSW) graphs offer an efficient approximate nearest neighbor search mechanism for dense vector embeddings in high-dimensional vector spaces. By constructing multi-layer graphs where upper layers contain long-range skip connections and bottom layers contain densely connected local neighborhoods, HNSW achieves logarithmic search time complexity while maintaining high recall rates under low search latency constraints.",
-    "source": "MSMARCO-XI/ComputerScience",
-    "domain": "Information Retrieval",
-    "query_id": "q_hnsw_01",
-    "related_query": "How does HNSW vector indexing achieve low-latency retrieval?"
+    "doc_id": "doc_sleep_mr",
+    "language": "mr",
+    "title": "चांगली झोप आणि शारीरिक दिनचर्या",
+    "passage": "दररोज ठराविक वेळी झोपणे आणि उठणे यामुळे शरीराचे जैविक घड्याळ व्यवस्थित राहते. झोपण्यापूर्वी मोबाईलची निळी किरणे टाळणे आणि चहा-कॉफी न घेणे यामुळे मेलाटोनिन हॉर्मोन योग्य प्रमाणात स्रवते. नियमित हलका व्यायाम गाढ झोप लागण्यास मदत करतो आणि सकाळी ताजेतवाने वाटते.",
+    "source": "MSMARCO-XI/Health/Marathi",
+    "domain": "Health & Physiology",
+    "query_id": "q_sleep_mr",
+    "related_query": "शांत झोप लागण्यासाठी काय करावे?"
   },
+
   {
-    "doc_id": "doc_space_01",
+    "doc_id": "doc_isro_en",
     "language": "en",
-    "title": "ISRO Chandrayaan Missions and Lunar South Pole Exploration",
+    "title": "ISRO Chandrayaan-3 Missions and Lunar South Pole Exploration",
     "passage": "India's Chandrayaan-3 mission achieved a historic soft landing near the lunar south pole on August 23, 2023. The mission's Vikram lander and Pragyan rover conducted in-situ scientific experiments measuring lunar soil thermal properties, seismicity, and confirming the presence of elemental sulfur, iron, titanium, and oxygen on the lunar surface.",
     "source": "MSMARCO-XI/Space",
     "domain": "Astronomy & Space",
-    "query_id": "q_isro_01",
-    "related_query": "What was the achievement of Chandrayaan-3?"
+    "query_id": "q_isro_en",
+    "related_query": "What did Chandrayaan-3 discover on the Moon?"
   },
   {
-    "doc_id": "doc_indic_hi_01",
+    "doc_id": "doc_isro_hi",
+    "language": "hi",
+    "title": "इसरो चंद्रयान-3 मिशन और चंद्रमा के दक्षिणी ध्रुव की खोज",
+    "passage": "भारत के चंद्रयान-3 मिशन ने 23 अगस्त 2023 को चंद्रमा के दक्षिणी ध्रुव के पास ऐतिहासिक सॉफ्ट लैंडिंग हासिल की। मिशन के विक्रम लैंडर और प्रज्ञान रोवर ने चंद्रमा की सतह पर वैज्ञानिक प्रयोग किए, जिसमें मिट्टी के तापीय गुणों, भूकंपीय गतिविधियों को मापा गया और चंद्रमा की सतह पर सल्फर (गंधक), लोहा, टाइटेनियम और ऑक्सीजन की उपस्थिति की पुष्टि की गई।",
+    "source": "MSMARCO-XI/Space/Hindi",
+    "domain": "Astronomy & Space",
+    "query_id": "q_isro_hi",
+    "related_query": "चंद्रयान-3 ने चंद्रमा पर क्या खोज की?"
+  },
+  {
+    "doc_id": "doc_isro_ta",
+    "language": "ta",
+    "title": "இஸ்ரோவின் சந்திரயான்-3 திட்டம் மற்றும் நிலவின் தென் துருவ ஆய்வு",
+    "passage": "இந்தியாவின் சந்திரயான்-3 விண்கலம் ஆகஸ்ட் 23, 2023 அன்று நிலவின் தென் துருவத்தில் வெற்றிகரமாக தரையிறங்கி வரலாற்று சாதனை படைத்தது. விக்ரம் லேண்டர் மற்றும் பிரக்யான் ரோவர் ஆகியவை நிலவின் மேற்பரப்பில் கந்தகம் (சல்பர்), இரும்பு, டைட்டானியம் மற்றும் ஆக்ஸிஜன் இருப்பதை அறிவியல் பூர்வமாக உறுதி செய்தன.",
+    "source": "MSMARCO-XI/Space/Tamil",
+    "domain": "Astronomy & Space",
+    "query_id": "q_isro_ta",
+    "related_query": "சந்திரயான்-3 நிலவில் என்ன கண்டுபிடித்தது?"
+  },
+  {
+    "doc_id": "doc_isro_te",
+    "language": "te",
+    "title": "ఇస్రో చంద్రయాన్-3 విజయం మరియు చంద్రుని పరిశోధనలు",
+    "passage": "భారత అంతరిక్ష పరిశోధనా సంస్థ ఇస్రో చేపట్టిన చంద్రయాన్-3 మిషన్ 2023 ఆగస్టు 23న చంద్రుని దక్షిణ ధ్రువంపై విజయవంతంగా ల్యాండ్ అయింది. విక్రమ్ ల్యాండర్ మరియు ప్రజ్ఞాన్ రోవర్ చంద్రుని ఉపరితలంపై సల్ఫర్, ఇనుము, టైటానియం మరియు ఆక్సిజన్ మూలకాలు ఉన్నట్లు నిర్ధారించాయి.",
+    "source": "MSMARCO-XI/Space/Telugu",
+    "domain": "Astronomy & Space",
+    "query_id": "q_isro_te",
+    "related_query": "చంద్రయాన్ 3 చంద్రుడిపై ఏమి కనుగొంది?"
+  },
+  {
+    "doc_id": "doc_isro_bn",
+    "language": "bn",
+    "title": "চন্দ্রযান-৩ মিশন ও চাঁদের দক্ষিণ মেরুর আবিষ্কার",
+    "passage": "ভারতের চন্দ্রযান-৩ মিশন ২৩শে আগস্ট ২০২৩ তারিখে চাঁদের দক্ষিণ মেরুতে ঐতিহাসিক সফট ল্যান্ডিং সম্পন্ন করে। বিক্রম ল্যান্ডার এবং প্রজ্ঞান রোভার চাঁদের মাটিতে সালফার, লোহা, টাইটানিয়াম এবং অক্সিজেনের উপস্থিতি নিশ্চিত করেছে এবং চাঁদের মাটির তাপমাত্রা পরিমাপ করেছে।",
+    "source": "MSMARCO-XI/Space/Bengali",
+    "domain": "Astronomy & Space",
+    "query_id": "q_isro_bn",
+    "related_query": "চন্দ্রযান ৩ চাঁদে কী আবিষ্কার করেছিল?"
+  },
+  {
+    "doc_id": "doc_isro_mr",
+    "language": "mr",
+    "title": "इस्रो चांद्रयान-३ मोहीम आणि चंद्रावरील संशोधन",
+    "passage": "भारताच्या चांद्रयान-३ मोहिमेने २३ ऑगस्ट २०२३ रोजी चंद्राच्या दक्षिण ध्रुवावर ऐतिहासिक सॉफ्ट लँडिंग केले. विक्रम लँडर आणि प्रज्ञान रोव्हरने चंद्राच्या पृष्ठभागावर सल्फर (गंधक), लोखंड, टायटॅनियम आणि ऑक्सिजनचे अस्तित्व सिद्ध केले.",
+    "source": "MSMARCO-XI/Space/Marathi",
+    "domain": "Astronomy & Space",
+    "query_id": "q_isro_mr",
+    "related_query": "चांद्रयान ३ ने चंद्रावर काय शोधले?"
+  },
+
+  {
+    "doc_id": "doc_solar_en",
+    "language": "en",
+    "title": "Solar Energy Advantages and Environmental Conservation",
+    "passage": "Solar energy is a clean, abundant, and renewable energy source that directly converts sunlight into electrical power using photovoltaic panels. Utilizing solar power reduces global dependence on fossil fuels, slashes greenhouse gas emissions, and helps mitigate atmospheric air pollution and global climate change.",
+    "source": "MSMARCO-XI/Energy",
+    "domain": "Renewable Energy",
+    "query_id": "q_solar_en",
+    "related_query": "What are the benefits of solar energy for the environment?"
+  },
+  {
+    "doc_id": "doc_solar_hi",
     "language": "hi",
     "title": "सौर ऊर्जा और पर्यावरण संरक्षण",
     "passage": "सौर ऊर्जा एक स्वच्छ, नवीकरणीय और पर्यावरण-अनुकूल ऊर्जा स्रोत है। सौर पैनल सूर्य की किरणों को फोटोवोल्टिक प्रभाव के माध्यम से सीधे विद्युत ऊर्जा में बदलते हैं। इसके उपयोग से जीवाश्म ईंधनों पर निर्भरता कम होती है और ग्रीनहाउस गैसों का उत्सर्जन घटता है, जिससे वायु प्रदूषण और ग्लोबल वार्मिंग को नियंत्रित करने में मदद मिलती है।",
     "source": "MSMARCO-XI/Indic/Hindi",
     "domain": "Renewable Energy",
-    "query_id": "q_solar_hi_01",
+    "query_id": "q_solar_hi",
     "related_query": "सौर ऊर्जा के क्या लाभ हैं और यह पर्यावरण की रक्षा कैसे करती है?"
   },
   {
-    "doc_id": "doc_indic_hi_02",
-    "language": "hi",
-    "title": "योग और मानसिक स्वास्थ्य",
-    "passage": "नियमित योग और प्राणायाम का अभ्यास मानसिक तनाव को कम करने और एकाग्रता बढ़ाने में अत्यंत लाभकारी है। ध्यान और गहरी सांस लेने के व्यायाम से मस्तिष्क में कोर्टिसोल हार्मोन का स्तर कम होता है और एंडोर्फिन का स्राव बढ़ता है, जिससे मानसिक शांति और भावनात्मक संतुलन प्राप्त होता है।",
-    "source": "MSMARCO-XI/Indic/Hindi",
-    "domain": "Health & Wellness",
-    "query_id": "q_yoga_hi_01",
-    "related_query": "योग मानसिक स्वास्थ्य के लिए कैसे फायदेमंद है?"
+    "doc_id": "doc_solar_ta",
+    "language": "ta",
+    "title": "சூரிய சக்தி மற்றும் சுற்றுச்சூழல் பாதுகாப்பு",
+    "passage": "சூரிய சக்தி ஒரு தூய்மையான, புதுப்பிக்கத்தக்க மற்றும் நிலையான ஆற்றல் மூலமாகும். சூரிய ஒளி தகடுகள் (Solar Panels) சூரிய ஒளியை நேரடியாக மின்சாரமாக மாற்றுகின்றன. இதனால் நிலக்கரி, பெட்ரோல் போன்ற புதைபடிவ எரிபொருட்களின் பயன்பாடு குறைந்து, பசுமை இல்ல வாயுக்களின் வெளியேற்றம் கட்டுப்படுத்தப்படுகிறது.",
+    "source": "MSMARCO-XI/Indic/Tamil",
+    "domain": "Renewable Energy",
+    "query_id": "q_solar_ta",
+    "related_query": "சூரிய சக்தியின் நன்மைகள் என்ன?"
   },
   {
-    "doc_id": "doc_indic_ta_01",
+    "doc_id": "doc_solar_te",
+    "language": "te",
+    "title": "సౌర శక్తి మరియు పర్యావరణ పరిరక్షణ",
+    "passage": "సౌర శక్తి అనేది స్వచ్ఛమైన మరియు పునరుత్పాదక ఇంధన వనరు. సోలార్ ప్యానెల్స్ ద్వారా సూర్యరశ్మిని విద్యుత్ శక్తిగా మార్చడం వలన బొగ్గు మరియు పెట్రోలియం వాడకం తగ్గుతుంది, దీని వలన గ్రీన్ హౌస్ వాయువుల ఉద్గారాలు తగ్గి పర్యావరణ కాలుష్యం నివారించబడుతుంది.",
+    "source": "MSMARCO-XI/Indic/Telugu",
+    "domain": "Renewable Energy",
+    "query_id": "q_solar_te",
+    "related_query": "సౌర శక్తి వల్ల కలిగే ప్రయోజనాలు ఏమిటి?"
+  },
+  {
+    "doc_id": "doc_solar_bn",
+    "language": "bn",
+    "title": "সৌর শক্তি এবং পরিবেশ সংরক্ষণ",
+    "passage": "সৌর শক্তি একটি পরিচ্ছন্ন ও পুনর্নবীকরণযোগ্য শক্তির উৎস। সোলার প্যানেলের মাধ্যমে সূর্যের আলোকে বিদ্যুৎ শক্তিতে রূপান্তর করার ফলে জীবাশ্ম জ্বালানির ওপর নির্ভরতা কমে এবং কার্বন নির্গমন হ্রাস পেয়ে পরিবেশ সুরক্ষিত থাকে।",
+    "source": "MSMARCO-XI/Indic/Bengali",
+    "domain": "Renewable Energy",
+    "query_id": "q_solar_bn",
+    "related_query": "সৌর শক্তির সুবিধা কি কি?"
+  },
+  {
+    "doc_id": "doc_solar_mr",
+    "language": "mr",
+    "title": "सौर ऊर्जा आणि पर्यावरण संरक्षण",
+    "passage": "सौर ऊर्जा हा एक स्वच्छ, मुबलक आणि अक्षय्य ऊर्जा स्रोत आहे. सौर पॅनेलद्वारे सूर्यप्रकाशाचे विजेमध्ये रूपांतर केले जाते. यामुळे कोळसा व इंधनावरील अवलंबित्व कमी होऊन प्रदूषण आणि कार्बन उत्सर्जन रोखण्यास मदत होते.",
+    "source": "MSMARCO-XI/Indic/Marathi",
+    "domain": "Renewable Energy",
+    "query_id": "q_solar_mr",
+    "related_query": "सौर ऊर्जेचे फायदे काय आहेत?"
+  },
+
+  {
+    "doc_id": "doc_earthquake_en",
+    "language": "en",
+    "title": "Geological Causes of Earthquakes",
+    "passage": "Earthquakes are primarily caused by the sudden release of accumulated stress along geological fault lines in the Earth's crust. As tectonic plates grind against one another, frictional forces lock their edges. When the built-up strain overcomes frictional resistance, seismic energy propagates through surrounding rock in the form of seismic waves, causing ground shaking.",
+    "source": "MSMARCO-XI/Geology",
+    "domain": "Earth Sciences",
+    "query_id": "q_earthquake_en",
+    "related_query": "What causes earthquakes?"
+  },
+  {
+    "doc_id": "doc_earthquake_hi",
+    "language": "hi",
+    "title": "भूकंप के भूवैज्ञानिक कारण",
+    "passage": "भूकंप मुख्य रूप से पृथ्वी की पपड़ी में टेक्टोनिक प्लेटों के खिसकने और फॉल्ट लाइनों के किनारे तनाव के अचानक मुक्त होने के कारण आते हैं। जब दो प्लेटें आपस में टकराती हैं या रगड़ती हैं, तो घर्षण के कारण ऊर्जा संचित होती है। तनाव अधिक बढ़ने पर यह ऊर्जा तरंगों के रूप में बाहर निकलती है, जिससे धरती कांपने लगती है।",
+    "source": "MSMARCO-XI/Geology/Hindi",
+    "domain": "Earth Sciences",
+    "query_id": "q_earthquake_hi",
+    "related_query": "भूकंप क्यों आते हैं और इसके क्या कारण हैं?"
+  },
+  {
+    "doc_id": "doc_earthquake_ta",
+    "language": "ta",
+    "title": "நிலநடுக்கத்திற்கான புவியியல் காரணங்கள்",
+    "passage": "பூமியின் மேலோட்டில் உள்ள டெக்டோனிக் தட்டுகள் நகர்ந்து ஒன்றுடன் ஒன்று மோதும் போது நிலநடுக்கம் ஏற்படுகிறது. தட்டுகளின் உராய்வு காரணமாக சேகரமாகும் அழுத்தம் திடீரென வெளிப்படும் போது, நில அதிர்வு அலைகள் உருவாகி நிலத்தை அதிரச் செய்கின்றன.",
+    "source": "MSMARCO-XI/Geology/Tamil",
+    "domain": "Earth Sciences",
+    "query_id": "q_earthquake_ta",
+    "related_query": "நிலநடுக்கம் ஏன் ஏற்படுகிறது?"
+  },
+  {
+    "doc_id": "doc_earthquake_bn",
+    "language": "bn",
+    "title": "ভূমিকম্পের কারণ ও ভূবিজ্ঞান",
+    "passage": "ভূগর্ভের টেকটোনিক প্লেটগুলোর স্থানচ্যুতির ফলে ভূত্বকে সৃষ্ট বিপুল চাপ হঠাৎ মুক্ত হলে ভূমিকম্প সৃষ্টি হয়। এই সঞ্চিত শক্তি ভূকম্পন তরঙ্গের মাধ্যমে চারদিকে ছড়িয়ে পড়ে এবং ভূপৃষ্ঠ কাঁপিয়ে তোলে।",
+    "source": "MSMARCO-XI/Geology/Bengali",
+    "domain": "Earth Sciences",
+    "query_id": "q_earthquake_bn",
+    "related_query": "ভূমিকম্প কেন হয়?"
+  },
+
+  {
+    "doc_id": "doc_agri_en",
+    "language": "en",
+    "title": "Benefits of Organic Farming and Sustainable Agriculture",
+    "passage": "Organic farming enhances soil biodiversity and fertility by avoiding synthetic pesticides and chemical fertilizers. Utilizing natural compost, vermicomposting, and bio-fertilizers prevents groundwater contamination, conserves beneficial microbes, and produces chemical-free, nutrient-rich food.",
+    "source": "MSMARCO-XI/Agriculture",
+    "domain": "Agriculture & Ecology",
+    "query_id": "q_agri_en",
+    "related_query": "What are the benefits of organic farming?"
+  },
+  {
+    "doc_id": "doc_agri_ta",
     "language": "ta",
     "title": "இயற்கை விவசாயத்தின் நன்மைகள்",
     "passage": "இயற்கை விவசாயம் மண்ணின் வளத்தை பாதுகாப்பதோடு, நச்சுத்தன்மையற்ற ஆரோக்கியமான உணவை உற்பத்தி செய்ய உதவுகிறது. ரசாயன உரங்கள் மற்றும் பூச்சிக்கொல்லிகளை தவிர்த்து, மண்புழு உரம், பஞ்சகாவ்யா போன்ற இயற்கை உரங்களை பயன்படுத்துவதால் நிலத்தடி நீர் மாசுபடுவது தடுக்கப்படுகிறது மற்றும் பல்லுயிர் பெருக்கம் பாதுகாக்கப்படுகிறது.",
     "source": "MSMARCO-XI/Indic/Tamil",
     "domain": "Agriculture & Ecology",
-    "query_id": "q_agri_ta_01",
+    "query_id": "q_agri_ta",
     "related_query": "இயற்கை விவசாயத்தின் முக்கிய நன்மைகள் யாவை?"
   },
   {
-    "doc_id": "doc_indic_te_01",
+    "doc_id": "doc_agri_hi",
+    "language": "hi",
+    "title": "जैविक खेती और टिकाऊ कृषि के लाभ",
+    "passage": "जैविक खेती रासायनिक उर्वरकों और कीटनाशकों के स्थान पर गोबर की खाद, केंचुआ खाद और जैविक कीटनाशकों का उपयोग करती है। इससे मिट्टी की उर्वरा शक्ति बढ़ती है, भूजल प्रदूषण से बचता है और स्वास्थ्यवर्धक रसायन-मुक्त फसलें प्राप्त होती हैं।",
+    "source": "MSMARCO-XI/Agriculture/Hindi",
+    "domain": "Agriculture & Ecology",
+    "query_id": "q_agri_hi",
+    "related_query": "जैविक खेती के क्या फायदे हैं?"
+  },
+  {
+    "doc_id": "doc_agri_te",
+    "language": "te",
+    "title": "సేంద్రీయ వ్యవసాయం ప్రయోజనాలు",
+    "passage": "సేంద్రీయ వ్యవసాయం ద్వారా రసాయనాలు లేని స్వచ్ఛమైన పంటలను పండించవచ్చు. వానపాముల ఎరువు, జీవామృతం ఉపయోగించడం వల్ల భూమి సారం పెరిగి భూగర్భ జలాలు కలుషితం కాకుండా ఉంటాయి.",
+    "source": "MSMARCO-XI/Agriculture/Telugu",
+    "domain": "Agriculture & Ecology",
+    "query_id": "q_agri_te",
+    "related_query": "సేంద్రీయ వ్యవసాయం యొక్క ఉపయోగాలు ఏమిటి?"
+  },
+
+  {
+    "doc_id": "doc_water_en",
+    "language": "en",
+    "title": "Rainwater Harvesting and Groundwater Conservation",
+    "passage": "Rainwater harvesting captures and stores rooftop and surface runoff in percolation pits and storage tanks to replenish depleted aquifers. Recharging groundwater levels prevents seasonal water scarcity, improves potable water quality, and mitigates urban flooding during intense rainfall.",
+    "source": "MSMARCO-XI/Water",
+    "domain": "Water Conservation",
+    "query_id": "q_water_en",
+    "related_query": "How does rainwater harvesting help water conservation?"
+  },
+  {
+    "doc_id": "doc_water_te",
     "language": "te",
     "title": "నీటి సంరక్షణ మరియు వర్షపు నీటి నిల్వ",
     "passage": "భూగర్భ జలాల పునరుద్ధరణకు వర్షపు నీటి సంరక్షణ చాలా ముఖ్యం. పైకప్పులపై పడే వర్షపు నీటిని గుంతలు మరియు ఇంకుడు గుంటల ద్వారా భూమిలోకి ఇంకింపజేయడం వలన వేసవి కాలంలో నీటి ఎద్దడిని నివారించవచ్చు మరియు తాగునీటి నాణ్యత మెరుగుపడుతుంది.",
     "source": "MSMARCO-XI/Indic/Telugu",
     "domain": "Water Conservation",
-    "query_id": "q_water_te_01",
+    "query_id": "q_water_te",
     "related_query": "వర్షపు నీటి సంరక్షణ పద్ధతులు ఏమిటి?"
   },
   {
-    "doc_id": "doc_indic_bn_01",
-    "language": "bn",
-    "title": "ম্যানগ্রোভ সুন্দরবন ও জলবায়ু স্থিতিস্থাপকতা",
-    "passage": "সুন্দরবনের ম্যানগ্রোভ অরণ্য উপকূলীয় অঞ্চলকে শক্তিশালী সামুদ্রিক ঝড় এবং জলোচ্ছ্বাস থেকে রক্ষা করার প্রাকৃতিক প্রাচীর হিসেবে কাজ করে। ম্যানগ্রোভের জটিল শিকড় ব্যবস্থা মাটির ক্ষয় রোধ করে এবং বিপুল পরিমাণে কার্বন ডাই অক্সাইড শোষণ করে জলবায়ু পরিবর্তন মোকাবেলায় গুরুত্বপূর্ণ ভূমিকা পালন করে।",
-    "source": "MSMARCO-XI/Indic/Bengali",
-    "domain": "Ecology & Climate",
-    "query_id": "q_sundarban_bn_01",
-    "related_query": "সুন্দরবনের ম্যানগ্রোভ কীভাবে পরিবেশ রক্ষা করে?"
+    "doc_id": "doc_water_hi",
+    "language": "hi",
+    "title": "वर्षा जल संचयन और भूजल संरक्षण",
+    "passage": "वर्षा जल संचयन (Rainwater Harvesting) के माध्यम से बारिश के पानी को टैंकों और सोखता गड्ढों में एकत्र कर भूजल स्तर को बढ़ाया जाता है। इससे गर्मियों में पानी की किल्लत दूर होती है और पीने के पानी की उपलब्धता सुनिश्चित होती है।",
+    "source": "MSMARCO-XI/Water/Hindi",
+    "domain": "Water Conservation",
+    "query_id": "q_water_hi",
+    "related_query": "वर्षा जल संचयन कैसे किया जाता है?"
   },
   {
-    "doc_id": "doc_indic_mr_01",
+    "doc_id": "doc_water_mr",
     "language": "mr",
-    "title": "महाराष्ट्रातील ऐतिहासिक जलव्यवस्थापन",
-    "passage": "महाराष्ट्रातील गड-किल्ल्यांवर छ्त्रपती शिवाजी महाराजांच्या काळात जलव्यवस्थापनाची उत्कृष्ट रचना करण्यात आली होती. खडकात कोरलेली तळी आणि पावसाचे पाणी साठवण्याच्या शास्त्रीय पद्धतींमुळे गडावर बारमाही स्वच्छ पाण्याचा पुरवठा सुनिश्चित होत असे.",
-    "source": "MSMARCO-XI/Indic/Marathi",
-    "domain": "History & Water Engineering",
-    "query_id": "q_water_mr_01",
-    "related_query": "शिवकालीन गड-किल्ल्यांवरील जलव्यवस्थापन कसे होते?"
-  },
-  {
-    "doc_id": "doc_ai_01",
-    "language": "en",
-    "title": "Dense Retrieval vs Sparse Retrieval in Modern RAG",
-    "passage": "Dense vector retrieval uses neural encoders to map semantically similar queries and documents close together in continuous embedding space, capturing synonymy and conceptual context without exact keyword overlap. In contrast, sparse retrieval (like BM25) relies on lexical token matching and inverted indices. Dense retrieval excels at conceptual question answering, whereas sparse retrieval is resilient to rare identifiers and out-of-vocabulary entities.",
-    "source": "MSMARCO-XI/AI",
-    "domain": "Artificial Intelligence",
-    "query_id": "q_rag_dense_01",
-    "related_query": "What is the difference between dense retrieval and sparse retrieval?"
-  },
-  {
-    "doc_id": "doc_energy_01",
-    "language": "en",
-    "title": "Nuclear Fusion as Clean Energy Source",
-    "passage": "Nuclear fusion replicates the energy-generating process of stars by fusing light atomic nuclei such as deuterium and tritium to form helium, releasing vast amounts of energy with zero long-lived radioactive waste and zero carbon emissions. Magnetic confinement fusion using tokamaks like ITER relies on superconducting magnetic coils to contain plasma heated to over 100 million degrees Celsius.",
-    "source": "MSMARCO-XI/Energy",
-    "domain": "Energy & Physics",
-    "query_id": "q_fusion_01",
-    "related_query": "Why is nuclear fusion considered the future of clean energy?"
+    "title": "पावसाच्या पाण्याचे नियोजन आणि भूजल संवर्धन",
+    "passage": "पावसाचे पाणी अडवून जमिनीत जिरवल्यामुळे भूजल पातळी वाढते. छतावरील पाणी साठवण पद्धती आणि शेततळ्यांमुळे उन्हाळ्यात पाण्याचा तुटवडा जाणवत नाही आणि शेतीसाठी मुबलक पाणी उपलब्ध होते.",
+    "source": "MSMARCO-XI/Water/Marathi",
+    "domain": "Water Conservation",
+    "query_id": "q_water_mr",
+    "related_query": "पाणी बचतीचे आणि जलसंधारणाचे उपाय कोणते?"
   }
 ]

@@ -87,6 +87,12 @@ def startup_event():
         indexer = OfflineIndexer()
         indexer.run_indexing_pipeline()
         logger.info("VoiceRAG initial indexing completed successfully.")
+
+        # Warmup pipeline to eliminate P100 cold-start delay
+        logger.info("Pre-warming vector index & embedding engine for zero-cold-start cloud SLA (<200ms)...")
+        pipeline = get_rag_pipeline()
+        pipeline.process_request(query_text="warmup query for sub-200ms latency", top_k=5, ef_search=32)
+        logger.info("VoiceRAG pre-warmup completed successfully.")
     except Exception as e:
         logger.error(f"Startup indexing error: {e}")
 

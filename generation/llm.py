@@ -19,9 +19,9 @@ class FastLLMGenerator:
         provider: str = "fast_llm",
         api_key: Optional[str] = None,
         model: str = "llama-3.1-8b-instant",
-        max_tokens: int = 150,
+        max_tokens: int = 90,
         temperature: float = 0.1,
-        timeout: float = 3.0
+        timeout: float = 2.5
     ):
         self.provider = provider
         self.api_key = api_key or os.getenv("LLM_API_KEY", os.getenv("GROQ_API_KEY", os.getenv("OPENAI_API_KEY", "")))
