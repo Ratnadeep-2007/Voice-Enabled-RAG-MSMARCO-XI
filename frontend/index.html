@@ -16,7 +16,7 @@
   <script src="https://unpkg.com/lucide@latest"></script>
   
   <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="/static/css/style.css?v=2.3">
+  <link rel="stylesheet" href="/static/css/style.css?v=2.4">
 </head>
 <body>
 
@@ -201,49 +201,6 @@
               </button>
             </div>
 
-            <!-- Parameter Configuration Strip -->
-            <div class="parameters-strip">
-              <div class="param-group">
-                <label>Chunking:</label>
-                <select id="chunkStrategySelect" class="form-select">
-                  <option value="adaptive" selected>Strategy D: Adaptive + Metadata</option>
-                  <option value="sentence">Strategy C: Sentence-aware</option>
-                  <option value="overlap">Strategy B: Fixed + Overlap</option>
-                  <option value="fixed">Strategy A: Fixed Size</option>
-                </select>
-              </div>
-
-              <div class="param-group">
-                <label>Top-K:</label>
-                <select id="topKSelect" class="form-select">
-                  <option value="5" selected>5</option>
-                  <option value="10">10</option>
-                </select>
-              </div>
-
-              <div class="param-group">
-                <label>ef_search:</label>
-                <select id="efSearchSelect" class="form-select">
-                  <option value="8">8 (Fast)</option>
-                  <option value="32" selected>32 (Optimal)</option>
-                  <option value="128">128 (High Recall)</option>
-                </select>
-              </div>
-
-              <div class="param-group">
-                <label>Format:</label>
-                <select id="contextFormatSelect" class="form-select">
-                  <option value="json" selected>JSON</option>
-                  <option value="toon">TOON</option>
-                </select>
-              </div>
-
-              <label class="toggle-control">
-                <input type="checkbox" id="hybridToggle">
-                <span>Hybrid BM25</span>
-              </label>
-            </div>
-
           </div>
 
         </div>
@@ -392,6 +349,6 @@
     </div>
   </footer>
 
-  <script src="/static/js/app.js?v=2.3"></script>
+  <script src="/static/js/app.js?v=2.4"></script>
 </body>
 </html>
