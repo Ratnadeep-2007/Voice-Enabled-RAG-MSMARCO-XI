@@ -18,19 +18,41 @@ class FastLLMGenerator:
         self,
         provider: str = "fast_llm",
         api_key: Optional[str] = None,
-        model: str = "llama-3.1-8b-instant",
+        model: Optional[str] = None,
         max_tokens: int = 90,
         temperature: float = 0.1,
         timeout: float = 2.5
     ):
         self.provider = provider
-        self.api_key = api_key or os.getenv("LLM_API_KEY", os.getenv("GROQ_API_KEY", os.getenv("OPENAI_API_KEY", "")))
-        self.model = model
+        # Support Cerebras, Groq, OpenAI, or generic LLM_API_KEY
+        self.cerebras_key = os.getenv("CEREBRAS_API_KEY", "")
+        self.groq_key = os.getenv("GROQ_API_KEY", "")
+        self.openai_key = os.getenv("OPENAI_API_KEY", "")
+        self.generic_key = os.getenv("LLM_API_KEY", "")
+        
+        self.api_key = (
+            api_key 
+            or self.cerebras_key 
+            or self.groq_key 
+            or self.openai_key 
+            or self.generic_key
+        ).strip()
+
+        # Model configuration
+        if model:
+            self.model = model
+        elif self.cerebras_key or self.api_key.startswith("csk-") or self.api_key.startswith("csk_"):
+            self.model = os.getenv("CEREBRAS_MODEL", "gpt-oss-120b")
+        elif self.groq_key or self.api_key.startswith("gsk_"):
+            self.model = os.getenv("GROQ_MODEL", "llama-3.1-8b-instant")
+        else:
+            self.model = "gpt-4o-mini"
+
         self.max_tokens = max_tokens
         self.temperature = temperature
         self.timeout = timeout
         
-        # Persistent HTTP client with connection pooling & keep-alive (eliminates TCP+TLS handshake latency)
+        # Persistent HTTP client with connection pooling & keep-alive
         limits = httpx.Limits(max_keepalive_connections=20, max_connections=50, keepalive_expiry=60.0)
         self._http_client = httpx.Client(timeout=self.timeout, limits=limits)
 
@@ -70,21 +92,30 @@ class FastLLMGenerator:
         retrieved_chunks: List[Dict[str, Any]]
     ) -> Dict[str, Any]:
         """
-        Executes generation and returns answer with telemetry.
+        Executes generation on Cerebras / Groq / OpenAI or local fallback with microsecond telemetry.
         """
         t0 = time.perf_counter()
 
-        # Check for external API key (Groq or OpenAI)
+        # Check for external API key
         if self.api_key and len(self.api_key) > 8:
             try:
-                # Groq / OpenAI compatible endpoint
-                url = "https://api.groq.com/openai/v1/chat/completions" if "gsk_" in self.api_key else "https://api.openai.com/v1/chat/completions"
+                # Detect Provider Endpoint
+                if self.api_key.startswith("csk-") or self.api_key.startswith("csk_") or self.cerebras_key:
+                    url = "https://api.cerebras.ai/v1/chat/completions"
+                    provider_name = "cerebras_lpu"
+                elif self.api_key.startswith("gsk_") or self.groq_key:
+                    url = "https://api.groq.com/openai/v1/chat/completions"
+                    provider_name = "groq_lpu"
+                else:
+                    url = "https://api.openai.com/v1/chat/completions"
+                    provider_name = "openai"
+
                 headers = {
                     "Authorization": f"Bearer {self.api_key}",
                     "Content-Type": "application/json"
                 }
                 body = {
-                    "model": self.model if "gsk_" in self.api_key else "gpt-4o-mini",
+                    "model": self.model,
                     "messages": [
                         {"role": "system", "content": system_prompt},
                         {"role": "user", "content": user_prompt}
@@ -102,12 +133,12 @@ class FastLLMGenerator:
                     return {
                         "answer": answer,
                         "latency_ms": round(latency_ms, 2),
-                        "provider": "hosted_llm",
-                        "model": body["model"],
+                        "provider": provider_name,
+                        "model": self.model,
                         "status": "success"
                     }
                 else:
-                    logger.warning(f"LLM API returned {resp.status_code}: {resp.text}")
+                    logger.warning(f"LLM API ({provider_name}) returned {resp.status_code}: {resp.text}")
             except Exception as e:
                 logger.error(f"Error connecting to LLM API: {e}")
 
