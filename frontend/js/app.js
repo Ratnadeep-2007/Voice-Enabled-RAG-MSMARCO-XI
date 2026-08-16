@@ -238,52 +238,56 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // Global Handlers exposed to window for inline onclick attributes
+  window.selectPresetQuery = function(el) {
+    if (!el) return;
+    document.querySelectorAll('.preset-chip, .preset-btn, .preset-pill').forEach(p => p.classList.remove('active'));
+    el.classList.add('active');
+    const q = el.getAttribute('data-query');
+    const lang = el.getAttribute('data-lang') || 'en';
+    state.currentLanguage = lang;
+    if (queryInput) queryInput.value = q;
+    executeQuery(q, lang);
+  };
+
+  window.triggerPipelineRun = function() {
+    const query = queryInput ? queryInput.value.trim() : '';
+    if (!query) {
+      alert('Please enter or speak a question.');
+      return;
+    }
+    executeQuery(query, state.currentLanguage);
+  };
+
+  window.toggleVoiceRecord = function() {
+    if (state.isRecording) {
+      stopRecording();
+    } else {
+      startRecording();
+    }
+  };
+
   // Mic Button Event Listeners (supports click toggle & hold)
   if (heroMicBtn) {
-    heroMicBtn.addEventListener('click', () => {
-      if (state.isRecording) {
-        stopRecording();
-      } else {
-        startRecording();
-      }
-    });
+    heroMicBtn.addEventListener('click', window.toggleVoiceRecord);
   }
 
   if (mainRecordBtn) {
-    mainRecordBtn.addEventListener('click', () => {
-      if (state.isRecording) {
-        stopRecording();
-      } else {
-        startRecording();
-      }
-    });
+    mainRecordBtn.addEventListener('click', window.toggleVoiceRecord);
   }
 
   // -------------------------------------------------------------
-  // Preset Pills
+  // Preset Pills (Event Listener Fallback)
   // -------------------------------------------------------------
   presetPills.forEach(pill => {
-    pill.addEventListener('click', () => {
-      presetPills.forEach(p => p.classList.remove('active'));
-      pill.classList.add('active');
-      const q = pill.getAttribute('data-query');
-      const lang = pill.getAttribute('data-lang') || 'en';
-      state.currentLanguage = lang;
-      if (queryInput) queryInput.value = q;
-      executeQuery(q, lang);
+    pill.addEventListener('click', function() {
+      window.selectPresetQuery(this);
     });
   });
 
   // Execute Query Button & Enter Key Trigger
   if (btnExecuteQuery) {
-    btnExecuteQuery.addEventListener('click', () => {
-      const query = queryInput ? queryInput.value.trim() : '';
-      if (!query) {
-        alert('Please enter or speak a question.');
-        return;
-      }
-      executeQuery(query, state.currentLanguage);
-    });
+    btnExecuteQuery.addEventListener('click', window.triggerPipelineRun);
   }
 
   if (queryInput) {

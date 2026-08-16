@@ -16,7 +16,7 @@
   <script src="https://unpkg.com/lucide@latest"></script>
   
   <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="stylesheet" href="/static/css/style.css?v=2.2">
 </head>
 <body>
 
@@ -131,12 +131,12 @@
       <div class="presets-container">
         <span class="presets-label"><i data-lucide="sparkles"></i> Sample Queries:</span>
         <div class="presets-scroll-list">
-          <button class="preset-chip active" data-query="What is the best way to improve sleep?" data-lang="en">Sleep Quality (EN)</button>
-          <button class="preset-chip" data-query="What causes earthquakes?" data-lang="en">Earthquakes (EN)</button>
-          <button class="preset-chip" data-query="What did Chandrayaan-3 discover on the Moon?" data-lang="en">Chandrayaan-3 (EN)</button>
-          <button class="preset-chip" data-query="सौर ऊर्जा के क्या लाभ हैं और यह पर्यावरण की रक्षा कैसे करती है?" data-lang="hi">Solar Energy (HI)</button>
-          <button class="preset-chip" data-query="இயற்கை விவசாயத்தின் முக்கிய நன்மைகள் யாவை?" data-lang="ta">Organic Farming (TA)</button>
-          <button class="preset-chip chip-ood" data-query="What is the capital of Martian Atlantis city?" data-lang="en">Out-of-Domain Guardrail Test</button>
+          <button class="preset-chip active" onclick="selectPresetQuery(this)" data-query="What is the best way to improve sleep?" data-lang="en">Sleep Quality (EN)</button>
+          <button class="preset-chip" onclick="selectPresetQuery(this)" data-query="What causes earthquakes?" data-lang="en">Earthquakes (EN)</button>
+          <button class="preset-chip" onclick="selectPresetQuery(this)" data-query="What did Chandrayaan-3 discover on the Moon?" data-lang="en">Chandrayaan-3 (EN)</button>
+          <button class="preset-chip" onclick="selectPresetQuery(this)" data-query="सौर ऊर्जा के क्या लाभ हैं और यह पर्यावरण की रक्षा कैसे करती है?" data-lang="hi">Solar Energy (HI)</button>
+          <button class="preset-chip" onclick="selectPresetQuery(this)" data-query="இயற்கை விவசாயத்தின் முக்கிய நன்மைகள் யாவை?" data-lang="ta">Organic Farming (TA)</button>
+          <button class="preset-chip chip-ood" onclick="selectPresetQuery(this)" data-query="What is the capital of Martian Atlantis city?" data-lang="en">Out-of-Domain Guardrail Test</button>
         </div>
       </div>
 
@@ -163,10 +163,10 @@
 
             <!-- Big Glowing Microphone Button -->
             <div class="mic-control-row">
-              <button class="btn-large-mic" id="heroMicBtn" aria-label="Hold to speak or click to record">
+              <button class="btn-large-mic" id="heroMicBtn" onclick="toggleVoiceRecord()" aria-label="Click to start/stop speech recording">
                 <div class="mic-ripple"></div>
                 <i data-lucide="mic"></i>
-                <span id="heroMicPrompt">HOLD TO SPEAK</span>
+                <span id="heroMicPrompt">CLICK TO SPEAK</span>
               </button>
               <div class="record-timer-chip hidden" id="recordTimer">00:00</div>
             </div>
@@ -185,7 +185,7 @@
 
             <div class="input-actions-row">
               <div class="actions-left">
-                <button class="btn btn-action-sub" id="mainRecordBtn">
+                <button class="btn btn-action-sub" id="mainRecordBtn" onclick="toggleVoiceRecord()">
                   <i data-lucide="mic"></i>
                   <span id="mainRecordText">Record Voice</span>
                 </button>
@@ -195,7 +195,7 @@
                 </button>
               </div>
 
-              <button class="btn btn-run-primary" id="btnExecuteQuery">
+              <button class="btn btn-run-primary" id="btnExecuteQuery" onclick="triggerPipelineRun()">
                 <span>RUN PIPELINE</span>
                 <i data-lucide="zap"></i>
               </button>
@@ -392,6 +392,6 @@
     </div>
   </footer>
 
-  <script src="/static/js/app.js"></script>
+  <script src="/static/js/app.js?v=2.2"></script>
 </body>
 </html>
