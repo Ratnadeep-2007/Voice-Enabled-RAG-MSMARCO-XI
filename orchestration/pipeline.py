@@ -72,7 +72,8 @@ class VoiceRAGPipeline:
         ef_search: Optional[int] = None,
         context_format: str = "json",
         use_hybrid: bool = False,
-        language_override: Optional[str] = None
+        language_override: Optional[str] = None,
+        model_override: Optional[str] = None
     ) -> Dict[str, Any]:
         """
         Executes complete online RAG pipeline and returns grounded response + full telemetry.
@@ -246,7 +247,8 @@ class VoiceRAGPipeline:
                 system_prompt=system_prompt,
                 user_prompt=user_prompt,
                 query=query,
-                retrieved_chunks=filtered_chunks
+                retrieved_chunks=filtered_chunks,
+                model_override=model_override
             )
             answer = gen_res["answer"]
             timings["llm_ms"] = gen_res["latency_ms"]

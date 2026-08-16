@@ -358,6 +358,9 @@ document.addEventListener('DOMContentLoaded', () => {
       answerBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
+    const modelSelector = document.getElementById('modelSelector');
+    const selectedModel = modelSelector ? modelSelector.value : 'llama-3.1-8b-instant';
+
     const payload = {
       query: text,
       chunk_strategy: chunkStrategySelect ? chunkStrategySelect.value : 'adaptive',
@@ -365,7 +368,8 @@ document.addEventListener('DOMContentLoaded', () => {
       ef_search: parseInt(efSearchSelect ? efSearchSelect.value : 32),
       context_format: contextFormatSelect ? contextFormatSelect.value : 'json',
       use_hybrid: hybridToggle ? hybridToggle.checked : false,
-      language: language
+      language: language,
+      model: selectedModel
     };
 
     try {

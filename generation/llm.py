@@ -23,30 +23,37 @@ class FastLLMGenerator:
         temperature: float = 0.1,
         timeout: float = 2.5
     ):
-        self.provider = provider
-        # Support Cerebras, Groq, OpenAI, or generic LLM_API_KEY
-        self.cerebras_key = os.getenv("CEREBRAS_API_KEY", "")
-        self.groq_key = os.getenv("GROQ_API_KEY", "")
-        self.openai_key = os.getenv("OPENAI_API_KEY", "")
-        self.generic_key = os.getenv("LLM_API_KEY", "")
+        self.provider_choice = os.getenv("LLM_PROVIDER", "groq").strip().lower()
+        self.cerebras_key = os.getenv("CEREBRAS_API_KEY", "").strip()
+        self.groq_key = os.getenv("GROQ_API_KEY", "").strip()
+        self.openai_key = os.getenv("OPENAI_API_KEY", "").strip()
+        self.generic_key = os.getenv("LLM_API_KEY", "").strip()
         
-        self.api_key = (
-            api_key 
-            or self.cerebras_key 
-            or self.groq_key 
-            or self.openai_key 
-            or self.generic_key
-        ).strip()
-
-        # Model configuration
-        if model:
-            self.model = model
-        elif self.cerebras_key or self.api_key.startswith("csk-") or self.api_key.startswith("csk_"):
-            self.model = os.getenv("CEREBRAS_MODEL", "gpt-oss-120b")
-        elif self.groq_key or self.api_key.startswith("gsk_"):
-            self.model = os.getenv("GROQ_MODEL", "llama-3.1-8b-instant")
+        # Select active API key and provider
+        if self.provider_choice == "groq" and self.groq_key:
+            self.provider = "groq"
+            self.api_key = self.groq_key
+            self.model = model or os.getenv("GROQ_MODEL", "llama-3.1-8b-instant")
+        elif self.provider_choice == "cerebras" and self.cerebras_key:
+            self.provider = "cerebras"
+            self.api_key = self.cerebras_key
+            self.model = model or os.getenv("CEREBRAS_MODEL", "gpt-oss-120b")
+        elif self.cerebras_key:
+            self.provider = "cerebras"
+            self.api_key = self.cerebras_key
+            self.model = model or os.getenv("CEREBRAS_MODEL", "gpt-oss-120b")
+        elif self.groq_key:
+            self.provider = "groq"
+            self.api_key = self.groq_key
+            self.model = model or os.getenv("GROQ_MODEL", "llama-3.1-8b-instant")
+        elif self.openai_key:
+            self.provider = "openai"
+            self.api_key = self.openai_key
+            self.model = model or "gpt-4o-mini"
         else:
-            self.model = "gpt-4o-mini"
+            self.provider = "local"
+            self.api_key = (api_key or self.generic_key).strip()
+            self.model = model or "llama-3.1-8b-instant"
 
         self.max_tokens = max_tokens
         self.temperature = temperature
@@ -89,33 +96,73 @@ class FastLLMGenerator:
         system_prompt: str,
         user_prompt: str,
         query: str,
-        retrieved_chunks: List[Dict[str, Any]]
+        retrieved_chunks: List[Dict[str, Any]],
+        model_override: Optional[str] = None
     ) -> Dict[str, Any]:
         """
-        Executes generation on Cerebras / Groq / OpenAI or local fallback with microsecond telemetry.
+        Executes generation on Groq / Cerebras / OpenAI or local fallback with microsecond telemetry.
         """
         t0 = time.perf_counter()
+        target_model = (model_override or self.model).strip()
+
+        if target_model == "local_fast":
+            local_ans = self._local_grounded_synthesis(query, retrieved_chunks)
+            latency_ms = (time.perf_counter() - t0) * 1000.0
+            return {
+                "answer": local_ans,
+                "latency_ms": round(max(0.8, latency_ms), 2),
+                "provider": "local_synthesizer",
+                "model": "local_fast",
+                "status": "success"
+            }
+
+        # Resolve provider based on target_model or active API keys
+        active_key = self.api_key
+        if "gpt-oss" in target_model or target_model == "cerebras_gpt_oss_120b":
+            url = "https://api.cerebras.ai/v1/chat/completions"
+            provider_name = "cerebras_lpu"
+            active_key = self.cerebras_key or self.api_key
+            target_model = "gpt-oss-120b"
+        elif target_model == "cerebras_llama_3.3_70b":
+            url = "https://api.cerebras.ai/v1/chat/completions"
+            provider_name = "cerebras_lpu"
+            active_key = self.cerebras_key or self.api_key
+            target_model = "llama-3.3-70b"
+        elif target_model == "groq_llama_3.3_70b":
+            url = "https://api.groq.com/openai/v1/chat/completions"
+            provider_name = "groq_lpu"
+            active_key = self.groq_key or self.api_key
+            target_model = "llama-3.3-70b-versatile"
+        elif "llama-3.1" in target_model or target_model == "groq_llama_3.1_8b":
+            url = "https://api.groq.com/openai/v1/chat/completions"
+            provider_name = "groq_lpu"
+            active_key = self.groq_key or self.api_key
+            target_model = "llama-3.1-8b-instant"
+        elif "gpt-4" in target_model:
+            url = "https://api.openai.com/v1/chat/completions"
+            provider_name = "openai"
+            active_key = self.openai_key or self.api_key
+            target_model = "gpt-4o-mini"
+        else:
+            if self.groq_key or active_key.startswith("gsk_"):
+                url = "https://api.groq.com/openai/v1/chat/completions"
+                provider_name = "groq_lpu"
+            elif self.cerebras_key or active_key.startswith("csk-") or active_key.startswith("csk_"):
+                url = "https://api.cerebras.ai/v1/chat/completions"
+                provider_name = "cerebras_lpu"
+            else:
+                url = "https://api.openai.com/v1/chat/completions"
+                provider_name = "openai"
 
         # Check for external API key
-        if self.api_key and len(self.api_key) > 8:
+        if active_key and len(active_key) > 8:
             try:
-                # Detect Provider Endpoint
-                if self.api_key.startswith("csk-") or self.api_key.startswith("csk_") or self.cerebras_key:
-                    url = "https://api.cerebras.ai/v1/chat/completions"
-                    provider_name = "cerebras_lpu"
-                elif self.api_key.startswith("gsk_") or self.groq_key:
-                    url = "https://api.groq.com/openai/v1/chat/completions"
-                    provider_name = "groq_lpu"
-                else:
-                    url = "https://api.openai.com/v1/chat/completions"
-                    provider_name = "openai"
-
                 headers = {
-                    "Authorization": f"Bearer {self.api_key}",
+                    "Authorization": f"Bearer {active_key}",
                     "Content-Type": "application/json"
                 }
                 body = {
-                    "model": self.model,
+                    "model": target_model,
                     "messages": [
                         {"role": "system", "content": system_prompt},
                         {"role": "user", "content": user_prompt}
@@ -134,7 +181,7 @@ class FastLLMGenerator:
                         "answer": answer,
                         "latency_ms": round(latency_ms, 2),
                         "provider": provider_name,
-                        "model": self.model,
+                        "model": target_model,
                         "status": "success"
                     }
                 else:
@@ -142,16 +189,15 @@ class FastLLMGenerator:
             except Exception as e:
                 logger.error(f"Error connecting to LLM API: {e}")
 
-        # Local fast grounded synthesis fallback
-        answer = self._local_grounded_synthesis(query, retrieved_chunks)
+        # High-speed local grounded synthesis fallback (<10ms)
+        local_ans = self._local_grounded_synthesis(query, retrieved_chunks)
         latency_ms = (time.perf_counter() - t0) * 1000.0
-
         return {
-            "answer": answer,
-            "latency_ms": max(8.0, round(latency_ms + 12.0, 2)), # Simulated generation time if instant
-            "provider": "local_grounded_engine",
-            "model": "grounded-dense-synthesizer-v1",
-            "status": "success"
+            "answer": local_ans,
+            "latency_ms": round(max(0.8, latency_ms), 2),
+            "provider": "local_synthesizer",
+            "model": "local_grounded_v2",
+            "status": "fallback"
         }
 
 

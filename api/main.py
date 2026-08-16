@@ -70,8 +70,9 @@ class QueryRequest(BaseModel):
     top_k: int = Field(5, description="Number of chunks to retrieve", ge=1, le=20)
     ef_search: int = Field(32, description="HNSW ef_search parameter", ge=4, le=512)
     context_format: str = Field("json", description="'json' or 'toon'")
-    use_hybrid: bool = Field(false if False else False, description="True for Hybrid BM25+Dense, False for Dense Baseline")
+    use_hybrid: bool = Field(False, description="True for Hybrid BM25+Dense, False for Dense Baseline")
     language: Optional[str] = Field("en", description="Query language code")
+    model: Optional[str] = Field(None, description="Optional LLM model override (e.g. 'llama-3.1-8b-instant', 'gpt-oss-120b', 'llama-3.3-70b', 'gpt-4o-mini', 'local_fast')")
 
 class IndexRequest(BaseModel):
     chunking_strategy: str = Field("adaptive", description="fixed, fixed_overlap, sentence, or adaptive")
@@ -110,7 +111,8 @@ async def process_text_query(req: QueryRequest):
         ef_search=req.ef_search,
         context_format=req.context_format,
         use_hybrid=req.use_hybrid,
-        language_override=req.language
+        language_override=req.language,
+        model_override=req.model
     )
     if response.get("timings"):
         latency_tracker.record(response["timings"])
@@ -123,7 +125,8 @@ async def process_audio_query(
     ef_search: int = Form(32),
     context_format: str = Form("json"),
     use_hybrid: bool = Form(False),
-    language: str = Form("en")
+    language: str = Form("en"),
+    model: Optional[str] = Form(None)
 ):
     """Processes audio speech input through Sarvam STT -> VoiceRAG pipeline."""
     try:
@@ -136,7 +139,8 @@ async def process_audio_query(
             ef_search=ef_search,
             context_format=context_format,
             use_hybrid=use_hybrid,
-            language_override=language
+            language_override=language,
+            model_override=model
         )
         if response.get("timings"):
             latency_tracker.record(response["timings"])

@@ -166,6 +166,21 @@
               <canvas id="waveformCanvas" width="480" height="64"></canvas>
             </div>
 
+            <!-- Temporary Development Model Selector -->
+            <div class="model-select-strip" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 6px 10px;">
+              <span style="font-size: 0.76rem; color: var(--text-muted); display: flex; align-items: center; gap: 5px;">
+                <i data-lucide="cpu" style="width: 14px; height: 14px; color: var(--primary-green);"></i> Synthesis Model (Dev):
+              </span>
+              <select id="modelSelector" class="model-dropdown" style="background: #111418; color: #E6EDF3; border: 1px solid #30363D; border-radius: 6px; padding: 4px 8px; font-size: 0.76rem; font-weight: 600; cursor: pointer; outline: none;">
+                <option value="llama-3.1-8b-instant" selected>Groq: Llama-3.1-8B-Instant (~45ms)</option>
+                <option value="gpt-oss-120b">Cerebras: GPT-OSS-120B (~20ms)</option>
+                <option value="cerebras_llama_3.3_70b">Cerebras: Llama-3.3-70B (~25ms)</option>
+                <option value="groq_llama_3.3_70b">Groq: Llama-3.3-70B-Versatile (~65ms)</option>
+                <option value="gpt-4o-mini">OpenAI: GPT-4o-Mini (~300ms)</option>
+                <option value="local_fast">Local Fast Synthesizer (&lt;1ms)</option>
+              </select>
+            </div>
+
             <textarea id="queryInput" class="custom-textarea" rows="4" placeholder="Speak via microphone or type your question here..."></textarea>
 
             <div class="input-actions-row">
