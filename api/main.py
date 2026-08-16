@@ -279,3 +279,11 @@ async def serve_index():
     if os.path.exists(index_file):
         return FileResponse(index_file)
     return {"message": "VoiceRAG API is running. Frontend index.html not found."}
+
+@app.get("/architecture")
+async def serve_architecture():
+    arch_file = os.path.join(root_dir, "architecture.html")
+    if os.path.exists(arch_file):
+        return FileResponse(arch_file)
+    return {"message": "architecture.html not found."}
+
