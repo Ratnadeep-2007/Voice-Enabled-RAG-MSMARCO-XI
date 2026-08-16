@@ -26,26 +26,19 @@ class GroundingValidator:
         query: Optional[str] = None
     ) -> Tuple[bool, float, GroundingStatus]:
         """
-        Evaluates top similarity score and query-evidence alignment against threshold.
+        Evaluates top semantic similarity score against confidence threshold.
+        Relies on dense neural vector similarity (SentenceTransformers) rather than exact word matching.
         """
         if not retrieved_chunks:
             return False, 0.0, GroundingStatus.UNSUPPORTED
 
-        top_score = retrieved_chunks[0].get("score", 0.0)
-
-        # Check if query keywords have sufficient presence in the top retrieved evidence
-        if query and retrieved_chunks:
-            q_clean = query.lower().replace("?", " ").replace("!", " ").replace(".", " ")
-            stop_words = {"what", "which", "where", "when", "who", "whom", "whose", "why", "how", "is", "are", "was", "were", "the", "a", "an", "of", "in", "on", "for", "to", "and", "or", "does", "did", "can", "could", "should", "would", "tell", "me", "about"}
-            q_words = [w.strip() for w in q_clean.split() if len(w.strip()) > 2 and w.strip() not in stop_words]
-            top_chunk_text = (retrieved_chunks[0].get("payload", {}).get("text", "") + " " + retrieved_chunks[0].get("payload", {}).get("title", "")).lower()
-            if q_words:
-                matched_top = sum(1 for w in q_words if w in top_chunk_text)
-                if matched_top / len(q_words) < 0.25:
-                    return False, top_score, GroundingStatus.UNSUPPORTED
+        top_score = float(retrieved_chunks[0].get("score", 0.0))
 
         if top_score < self.score_threshold:
-            return False, top_score, GroundingStatus.LOW_EVIDENCE
+            return False, top_score, GroundingStatus.UNSUPPORTED
+
+        if top_score < 0.40:
+            return True, top_score, GroundingStatus.LOW_EVIDENCE
 
         return True, top_score, GroundingStatus.GROUNDED
 

@@ -19,7 +19,7 @@ class EmbeddingEngine:
         dimension: int = 384,
         normalize: bool = True,
         device: str = "cpu",
-        use_torch: bool = False
+        use_torch: bool = True
     ):
         self.model_name = model_name
         self.dimension = dimension
@@ -138,7 +138,7 @@ class EmbeddingEngine:
         latency_ms = (time.perf_counter() - t0) * 1000.0
         return {
             "vector": vector.tolist(),
-            "latency_ms": max(8.5, round(latency_ms + 3.5, 2)),
+            "latency_ms": round(latency_ms, 2),
             "dimension": self.dimension,
             "model": self.model_name
         }
