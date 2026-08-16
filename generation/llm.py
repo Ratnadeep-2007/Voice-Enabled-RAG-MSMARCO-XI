@@ -26,11 +26,16 @@ class FastLLMGenerator:
         self.provider_choice = os.getenv("LLM_PROVIDER", "groq").strip().lower()
         self.cerebras_key = os.getenv("CEREBRAS_API_KEY", "").strip()
         self.groq_key = os.getenv("GROQ_API_KEY", "").strip()
+        self.openrouter_key = os.getenv("OPENROUTER_API_KEY", "").strip()
         self.openai_key = os.getenv("OPENAI_API_KEY", "").strip()
         self.generic_key = os.getenv("LLM_API_KEY", "").strip()
         
         # Select active API key and provider
-        if self.provider_choice == "groq" and self.groq_key:
+        if self.provider_choice == "openrouter" and self.openrouter_key:
+            self.provider = "openrouter"
+            self.api_key = self.openrouter_key
+            self.model = model or "qwen/qwen-2.5-7b-instruct"
+        elif self.provider_choice == "groq" and self.groq_key:
             self.provider = "groq"
             self.api_key = self.groq_key
             self.model = model or os.getenv("GROQ_MODEL", "llama-3.1-8b-instant")
@@ -46,6 +51,10 @@ class FastLLMGenerator:
             self.provider = "groq"
             self.api_key = self.groq_key
             self.model = model or os.getenv("GROQ_MODEL", "llama-3.1-8b-instant")
+        elif self.openrouter_key:
+            self.provider = "openrouter"
+            self.api_key = self.openrouter_key
+            self.model = model or "qwen/qwen-2.5-7b-instruct"
         elif self.openai_key:
             self.provider = "openai"
             self.api_key = self.openai_key
@@ -118,7 +127,21 @@ class FastLLMGenerator:
 
         # Resolve provider based on target_model or active API keys
         active_key = self.api_key
-        if "gpt-oss" in target_model or target_model == "cerebras_gpt_oss_120b":
+        headers = {
+            "Content-Type": "application/json"
+        }
+
+        if "qwen" in target_model:
+            url = "https://openrouter.ai/api/v1/chat/completions"
+            provider_name = "openrouter"
+            active_key = self.openrouter_key or self.api_key
+            headers["HTTP-Referer"] = "https://github.com/Ratnadeep-2007/Voice-Enabled-RAG-MSMARCO-XI"
+            headers["X-Title"] = "VoiceRAG Indic MSMARCO"
+            if "qwen-3" in target_model or "qwen3" in target_model or "4b" in target_model:
+                target_model = "qwen/qwen-2.5-7b-instruct" # Standard fast 7B/3B on OpenRouter
+            elif not target_model.startswith("qwen/"):
+                target_model = f"qwen/{target_model}"
+        elif "gpt-oss" in target_model or target_model == "cerebras_gpt_oss_120b":
             url = "https://api.cerebras.ai/v1/chat/completions"
             provider_name = "cerebras_lpu"
             active_key = self.cerebras_key or self.api_key
@@ -150,6 +173,11 @@ class FastLLMGenerator:
             elif self.cerebras_key or active_key.startswith("csk-") or active_key.startswith("csk_"):
                 url = "https://api.cerebras.ai/v1/chat/completions"
                 provider_name = "cerebras_lpu"
+            elif self.openrouter_key or active_key.startswith("sk-or-"):
+                url = "https://openrouter.ai/api/v1/chat/completions"
+                provider_name = "openrouter"
+                headers["HTTP-Referer"] = "https://github.com/Ratnadeep-2007/Voice-Enabled-RAG-MSMARCO-XI"
+                headers["X-Title"] = "VoiceRAG Indic MSMARCO"
             else:
                 url = "https://api.openai.com/v1/chat/completions"
                 provider_name = "openai"
@@ -157,10 +185,7 @@ class FastLLMGenerator:
         # Check for external API key
         if active_key and len(active_key) > 8:
             try:
-                headers = {
-                    "Authorization": f"Bearer {active_key}",
-                    "Content-Type": "application/json"
-                }
+                headers["Authorization"] = f"Bearer {active_key}"
                 body = {
                     "model": target_model,
                     "messages": [

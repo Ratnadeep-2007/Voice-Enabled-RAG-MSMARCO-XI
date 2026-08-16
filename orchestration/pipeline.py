@@ -21,6 +21,7 @@ from generation.llm import FastLLMGenerator, get_llm_generator
 from guardrails.input_guard import InputGuard
 from guardrails.grounding import GroundingValidator, GroundingStatus
 from indexing.qdrant_client import QdrantManager, get_qdrant_manager
+from retrieval.faiss_retriever import FAISSRetriever, get_faiss_retriever
 
 logger = logging.getLogger(__name__)
 
@@ -47,6 +48,7 @@ class VoiceRAGPipeline:
             collection_name=self.collection_name
         )
         self.hybrid_retriever = HybridRetriever(dense_retriever=self.dense_retriever)
+        self.faiss_retriever = get_faiss_retriever()
         self.context_builder = ContextBuilder()
         self.llm_generator = get_llm_generator()
         self.input_guard = InputGuard()
@@ -172,35 +174,72 @@ class VoiceRAGPipeline:
         ))
 
         # -------------------------------------------------------------
-        # 4. Vector DB Retrieval (Qdrant + HNSW)
+        # 4. Vector DB Retrieval (FAISS IVF-PQ + LMDB or Qdrant HNSW)
         # -------------------------------------------------------------
         k = top_k or self.default_top_k
         ef = ef_search or self.default_ef_search
 
-        if use_hybrid:
+        if self.faiss_retriever.index is not None and not use_hybrid:
+            faiss_res = self.faiss_retriever.search(query_vector, top_k=k, score_threshold=self.score_threshold)
+            raw_results = []
+            for c in faiss_res.get("chunks", []):
+                raw_results.append({
+                    "id": c.get("chunk_id"),
+                    "score": c.get("score", 0.0),
+                    "payload": {
+                        "chunk_id": c.get("chunk_id"),
+                        "doc_id": c.get("doc_id"),
+                        "text": c.get("text"),
+                        "title": c.get("title"),
+                        "language": c.get("language"),
+                        "source": c.get("source")
+                    }
+                })
+            timings["qdrant_ms"] = faiss_res.get("total_retrieval_ms", 0.0)
+            now_str = datetime.datetime.now().strftime("%H:%M:%S.%f")[:-3]
+            trace_events.append(self._create_trace_event(
+                "FAISS_IVFPQ_LMDB_RETRIEVAL",
+                now_str,
+                timings["qdrant_ms"],
+                {
+                    "retrieved_count": len(raw_results),
+                    "search_ms": faiss_res.get("search_latency_ms"),
+                    "lmdb_ms": faiss_res.get("lmdb_latency_ms"),
+                    "top_k": k,
+                    "engine": "FAISS_IVF_PQ_LMDB"
+                }
+            ))
+        elif use_hybrid:
             ret_res = self.hybrid_retriever.retrieve(
                 query=query,
                 query_vector=query_vector,
                 top_k=k,
                 ef_search=ef
             )
+            raw_results = ret_res.get("results", [])
+            timings["qdrant_ms"] = ret_res.get("latency_ms", 0.0)
+            now_str = datetime.datetime.now().strftime("%H:%M:%S.%f")[:-3]
+            trace_events.append(self._create_trace_event(
+                "QDRANT_HNSW_RETRIEVAL",
+                now_str,
+                timings["qdrant_ms"],
+                {"retrieved_count": len(raw_results), "ef_search": ef, "top_k": k, "mode": "hybrid"}
+            ))
         else:
             ret_res = self.dense_retriever.retrieve(
                 query_vector=query_vector,
                 top_k=k,
                 ef_search=ef
             )
-
-        raw_results = ret_res.get("results", [])
-        timings["qdrant_ms"] = ret_res.get("latency_ms", 0.0)
-
-        now_str = datetime.datetime.now().strftime("%H:%M:%S.%f")[:-3]
-        trace_events.append(self._create_trace_event(
-            "QDRANT_HNSW_RETRIEVAL",
-            now_str,
-            timings["qdrant_ms"],
-            {"retrieved_count": len(raw_results), "ef_search": ef, "top_k": k, "mode": "hybrid" if use_hybrid else "dense"}
-        ))
+            raw_results = ret_res.get("results", [])
+            timings["qdrant_ms"] = ret_res.get("latency_ms", 0.0)
+            now_str = datetime.datetime.now().strftime("%H:%M:%S.%f")[:-3]
+            trace_events.append(self._create_trace_event(
+                "QDRANT_HNSW_RETRIEVAL",
+                now_str,
+                timings["qdrant_ms"],
+                {"retrieved_count": len(raw_results), "ef_search": ef, "top_k": k, "mode": "dense"}
+            ))
 
         # -------------------------------------------------------------
         # 5. Relevance Filtering & Confidence Check

@@ -182,3 +182,14 @@ class DocumentChunker:
                 "strategy": active_strategy.value
             })
         return chunks
+
+    def chunk_corpus(
+        self,
+        documents: List[Dict[str, Any]],
+        strategy: Optional[ChunkingStrategy] = None
+    ) -> List[Dict[str, Any]]:
+        all_chunks = []
+        for doc in documents:
+            chunks = self.chunk_document(doc, strategy=strategy)
+            all_chunks.extend(chunks)
+        return all_chunks
