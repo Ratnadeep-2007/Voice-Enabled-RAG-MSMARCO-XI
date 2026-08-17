@@ -36,7 +36,7 @@ class VoiceRAGPipeline:
     def __init__(
         self,
         collection_name: str = "msmarco_xi_dense",
-        score_threshold: float = 0.28,
+        score_threshold: float = 0.22,
         default_top_k: int = 5,
         default_ef_search: int = 32
     ):

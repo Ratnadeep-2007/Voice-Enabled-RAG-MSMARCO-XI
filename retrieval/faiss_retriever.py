@@ -54,11 +54,11 @@ class FAISSRetriever:
         self,
         query_vector: List[float],
         top_k: int = 5,
-        score_threshold: float = 0.25
+        score_threshold: float = 0.22
     ) -> Dict[str, Any]:
         """
         Executes sub-2ms vector search in FAISS and zero-copy lookup in LMDB.
-        Threshold 0.25 accommodates paraphrases and synonyms in multilingual semantic space.
+        Threshold 0.22 accommodates cross-lingual keywords and phonetic transliterations in multilingual space.
         """
         if self.index is None:
             self._load_index()
