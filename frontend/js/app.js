@@ -13,9 +13,10 @@ document.addEventListener('DOMContentLoaded', () => {
   // State
   const state = {
     isRecording: false,
-    mediaRecorder: null,
-    audioChunks: [],
+    pcmChunks: [],
     audioContext: null,
+    scriptProcessor: null,
+    mediaStream: null,
     analyser: null,
     animationFrameId: null,
     recordStartTime: null,
@@ -69,13 +70,88 @@ document.addEventListener('DOMContentLoaded', () => {
   drawIdleWaveform();
 
   // -------------------------------------------------------------
-  // Audio Recording & Web Speech Handlers
+  // Pure 16kHz PCM WAV Audio Encoder for Sarvam AI STT
+  // -------------------------------------------------------------
+  function encodeWAV(samples, sampleRate = 16000) {
+    const buffer = new ArrayBuffer(44 + samples.length * 2);
+    const view = new DataView(buffer);
+
+    function writeString(view, offset, string) {
+      for (let i = 0; i < string.length; i++) {
+        view.setUint8(offset + i, string.charCodeAt(i));
+      }
+    }
+
+    // RIFF chunk descriptor
+    writeString(view, 0, 'RIFF');
+    view.setUint32(4, 36 + samples.length * 2, true);
+    writeString(view, 8, 'WAVE');
+
+    // fmt sub-chunk
+    writeString(view, 12, 'fmt ');
+    view.setUint32(16, 16, true);
+    view.setUint16(20, 1, true); // Linear PCM
+    view.setUint16(22, 1, true); // Mono (1 channel)
+    view.setUint32(24, sampleRate, true);
+    view.setUint32(28, sampleRate * 2, true); // Byte rate (sampleRate * 1 * 2)
+    view.setUint16(32, 2, true); // Block align (1 * 2)
+    view.setUint16(34, 16, true); // Bits per sample
+
+    // data sub-chunk
+    writeString(view, 36, 'data');
+    view.setUint32(40, samples.length * 2, true);
+
+    // 16-bit linear PCM conversion
+    let offset = 44;
+    for (let i = 0; i < samples.length; i++, offset += 2) {
+      const s = Math.max(-1, Math.min(1, samples[i]));
+      view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7fff, true);
+    }
+
+    return new Blob([view], { type: 'audio/wav' });
+  }
+
+  function downsampleBuffer(buffer, sampleRate, outSampleRate = 16000) {
+    if (outSampleRate === sampleRate || !sampleRate) {
+      return buffer;
+    }
+    const sampleRateRatio = sampleRate / outSampleRate;
+    const newLength = Math.round(buffer.length / sampleRateRatio);
+    const result = new Float32Array(newLength);
+    let offsetResult = 0;
+    let offsetBuffer = 0;
+    while (offsetResult < result.length) {
+      const nextOffsetBuffer = Math.round((offsetResult + 1) * sampleRateRatio);
+      let accum = 0;
+      let count = 0;
+      for (let i = offsetBuffer; i < nextOffsetBuffer && i < buffer.length; i++) {
+        accum += buffer[i];
+        count++;
+      }
+      result[offsetResult] = count > 0 ? (accum / count) : 0;
+      offsetResult++;
+      offsetBuffer = nextOffsetBuffer;
+    }
+    return result;
+  }
+
+  // -------------------------------------------------------------
+  // Live Audio Recording Handlers (Sarvam AI Pipeline)
   // -------------------------------------------------------------
   async function startRecording() {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          channelCount: 1,
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true
+        }
+      });
+
       state.isRecording = true;
-      state.audioChunks = [];
+      state.pcmChunks = [];
+      state.mediaStream = stream;
       state.recordStartTime = Date.now();
 
       // UI updates
@@ -83,11 +159,10 @@ document.addEventListener('DOMContentLoaded', () => {
       if (mainRecordBtn) {
         mainRecordBtn.classList.add('recording');
         mainRecordText.textContent = 'Stop Recording';
-        // Swap icon to mic-off to clearly show active state
         const icon = mainRecordBtn.querySelector('i[data-lucide]');
         if (icon) { icon.setAttribute('data-lucide', 'mic-off'); if (window.lucide) lucide.createIcons(); }
       }
-      if (heroMicStatus) heroMicStatus.textContent = '● LISTENING...';
+      if (heroMicStatus) heroMicStatus.textContent = '● LISTENING (Sarvam AI)...';
       if (heroMicPrompt) heroMicPrompt.textContent = 'LISTENING...';
       if (recordTimer) {
         recordTimer.classList.remove('hidden');
@@ -101,34 +176,32 @@ document.addEventListener('DOMContentLoaded', () => {
         if (recordTimer) recordTimer.textContent = `${mins}:${secs}`;
       }, 500);
 
-      // Audio Context for live visualizer
+      // Audio Context for live visualizer and PCM buffer recording
       const AudioContext = window.AudioContext || window.webkitAudioContext;
       state.audioContext = new AudioContext();
       const source = state.audioContext.createMediaStreamSource(stream);
+
       state.analyser = state.audioContext.createAnalyser();
       state.analyser.fftSize = 64;
       source.connect(state.analyser);
       visualizeWaveform();
 
-      // MediaRecorder for capturing WAV/WebM audio bytes
-      state.mediaRecorder = new MediaRecorder(stream);
-      state.mediaRecorder.ondataavailable = (e) => {
-        if (e.data.size > 0) {
-          state.audioChunks.push(e.data);
-        }
+      // ScriptProcessor for pure PCM capture
+      const bufferSize = 4096;
+      state.scriptProcessor = state.audioContext.createScriptProcessor(bufferSize, 1, 1);
+      state.scriptProcessor.onaudioprocess = (e) => {
+        if (!state.isRecording) return;
+        const channelData = e.inputBuffer.getChannelData(0);
+        state.pcmChunks.push(new Float32Array(channelData));
       };
 
-      state.mediaRecorder.onstop = async () => {
-        const audioBlob = new Blob(state.audioChunks, { type: 'audio/wav' });
-        await sendAudioForProcessing(audioBlob);
-        stream.getTracks().forEach(track => track.stop());
-      };
-
-      state.mediaRecorder.start(100);
+      source.connect(state.scriptProcessor);
+      state.scriptProcessor.connect(state.audioContext.destination);
 
     } catch (err) {
-      console.warn('Microphone access not granted, using simulated speech recognition or Web Speech API fallback:', err);
-      useWebSpeechFallback();
+      console.error('Microphone access denied:', err);
+      if (heroMicStatus) heroMicStatus.textContent = '● MIC PERMISSION NEEDED';
+      alert('Microphone access is required for Sarvam AI Voice recognition. Please allow microphone permissions in your browser or type your query directly.');
     }
   }
 
@@ -140,57 +213,54 @@ document.addEventListener('DOMContentLoaded', () => {
     if (mainRecordBtn) {
       mainRecordBtn.classList.remove('recording');
       mainRecordText.textContent = 'Record Voice';
-      // Restore mic icon
       const icon = mainRecordBtn.querySelector('i[data-lucide]');
       if (icon) { icon.setAttribute('data-lucide', 'mic'); if (window.lucide) lucide.createIcons(); }
     }
-    if (heroMicStatus) heroMicStatus.textContent = '● PROCESSING...';
+    if (heroMicStatus) heroMicStatus.textContent = '● SARVAM AI TRANSCRIBING...';
     if (heroMicPrompt) heroMicPrompt.textContent = 'PROCESSING...';
     if (recordTimer) recordTimer.classList.add('hidden');
     if (state.recordTimerInterval) clearInterval(state.recordTimerInterval);
-
-    if (state.mediaRecorder && state.mediaRecorder.state !== 'inactive') {
-      state.mediaRecorder.stop();
-    }
 
     if (state.animationFrameId) {
       cancelAnimationFrame(state.animationFrameId);
     }
     drawIdleWaveform();
-  }
 
-  function useWebSpeechFallback() {
-    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      const recognition = new SpeechRecognition();
-      recognition.lang = state.currentLanguage === 'hi' ? 'hi-IN' : (state.currentLanguage === 'ta' ? 'ta-IN' : 'en-US');
-      recognition.interimResults = false;
+    // Disconnect audio nodes
+    if (state.scriptProcessor) {
+      try { state.scriptProcessor.disconnect(); } catch (e) {}
+      state.scriptProcessor = null;
+    }
+    if (state.mediaStream) {
+      try { state.mediaStream.getTracks().forEach(t => t.stop()); } catch (e) {}
+      state.mediaStream = null;
+    }
 
-      recognition.onstart = () => {
-        state.isRecording = true;
-        if (heroMicBtn) heroMicBtn.classList.add('recording');
-        if (heroMicStatus) heroMicStatus.textContent = '● LISTENING (Browser STT)...';
-      };
+    const audioCtx = state.audioContext;
+    const sampleRate = audioCtx ? audioCtx.sampleRate : 44100;
+    if (audioCtx && audioCtx.state !== 'closed') {
+      audioCtx.close().catch(() => {});
+    }
 
-      recognition.onresult = (event) => {
-        const transcript = event.results[0][0].transcript;
-        if (queryInput) queryInput.value = transcript;
-        stopRecording();
-        executeQuery(transcript, state.currentLanguage);
-      };
+    // Convert recorded PCM chunks into true 16kHz WAV
+    if (state.pcmChunks && state.pcmChunks.length > 0) {
+      let totalSamples = 0;
+      for (let i = 0; i < state.pcmChunks.length; i++) {
+        totalSamples += state.pcmChunks[i].length;
+      }
+      const merged = new Float32Array(totalSamples);
+      let offset = 0;
+      for (let i = 0; i < state.pcmChunks.length; i++) {
+        merged.set(state.pcmChunks[i], offset);
+        offset += state.pcmChunks[i].length;
+      }
 
-      recognition.onerror = (e) => {
-        stopRecording();
-        console.warn('Speech recognition error/cancelled:', e);
-      };
-
-      recognition.onend = () => {
-        stopRecording();
-      };
-
-      recognition.start();
+      const resampled = downsampleBuffer(merged, sampleRate, 16000);
+      const wavBlob = encodeWAV(resampled, 16000);
+      state.pcmChunks = [];
+      sendAudioForProcessing(wavBlob);
     } else {
-      alert('Microphone access is not supported or was blocked by browser. Please type your query directly.');
+      if (heroMicStatus) heroMicStatus.textContent = '● NO SPEECH DETECTED';
     }
   }
 
