@@ -412,6 +412,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // API Query Dispatcher
   // -------------------------------------------------------------
   async function sendAudioForProcessing(audioBlob) {
+    console.log(`[VoiceRAG Frontend STT] Dispatching audio WAV blob (${audioBlob.size} bytes) to /api/query/audio, language=${state.currentLanguage}`);
     const formData = new FormData();
     formData.append('file', audioBlob, 'speech_query.wav');
     formData.append('chunk_strategy', chunkStrategySelect ? chunkStrategySelect.value : 'adaptive');
@@ -431,19 +432,21 @@ document.addEventListener('DOMContentLoaded', () => {
         method: 'POST',
         body: formData
       });
+      console.log(`[VoiceRAG Frontend STT] /api/query/audio returned HTTP status: ${resp.status}`);
       if (!resp.ok) {
         throw new Error(`HTTP ${resp.status}`);
       }
       const data = await resp.json();
+      console.log('[VoiceRAG Frontend STT] Server response:', data);
+
       // Populate text box with actual transcribed speech from Sarvam STT
       if (data.query && queryInput) {
         queryInput.value = data.query;
       }
       renderResponse(data);
     } catch (err) {
-      console.error('Error uploading audio:', err);
+      console.error('[VoiceRAG Frontend STT] Error uploading audio:', err);
       if (heroMicStatus) heroMicStatus.textContent = '● AUDIO ERROR';
-      alert('Audio processing failed or no speech was audible. You can also type your query directly.');
     }
   }
 
