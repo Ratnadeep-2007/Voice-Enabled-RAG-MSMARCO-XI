@@ -141,10 +141,14 @@ document.addEventListener('DOMContentLoaded', () => {
   // Voice Recording with MediaRecorder & Live Visualizer
   // -------------------------------------------------------------
   async function startRecording() {
-    console.log('[VoiceRAG] Requesting microphone access...');
+    console.log('%c[VoiceRAG 🎤] Requesting microphone access...', 'color: #0ea5e9; font-weight: bold;');
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      console.log('[VoiceRAG] Microphone access granted:', stream);
+      const tracks = stream.getAudioTracks();
+      console.log('%c[VoiceRAG 🎤] Microphone access granted:', 'color: #10b981; font-weight: bold;', {
+        track: tracks[0]?.label,
+        settings: tracks[0]?.getSettings()
+      });
 
       state.isRecording = true;
       state.mediaStream = stream;
@@ -201,28 +205,34 @@ document.addEventListener('DOMContentLoaded', () => {
         mimeType = 'audio/ogg';
       }
       
-      console.log('[VoiceRAG] Initializing MediaRecorder with MIME:', mimeType);
+      console.log(`%c[VoiceRAG 🎙️] Initialized MediaRecorder (${mimeType})`, 'color: #8b5cf6; font-weight: bold;');
       state.mediaRecorder = new MediaRecorder(stream, { mimeType: mimeType });
       
       state.mediaRecorder.ondataavailable = (event) => {
         if (event.data && event.data.size > 0) {
           state.recordedBlobs.push(event.data);
+          console.log(`%c[VoiceRAG 🎵 Chunk #${state.recordedBlobs.length}]`, 'color: #64748b;', `${event.data.size} bytes`);
         }
       };
 
       state.mediaRecorder.onstop = () => {
-        console.log(`[VoiceRAG] MediaRecorder stopped. Total chunks: ${state.recordedBlobs.length}`);
+        const durationSec = ((Date.now() - state.recordStartTime) / 1000).toFixed(2);
+        console.log(`%c[VoiceRAG 🛑] MediaRecorder stopped. Total chunks: ${state.recordedBlobs.length}, Duration: ${durationSec}s`, 'color: #f59e0b; font-weight: bold;');
         const audioBlob = new Blob(state.recordedBlobs, { type: mimeType });
-        console.log(`[VoiceRAG] Final audio blob: ${audioBlob.size} bytes, type: ${audioBlob.type}`);
+        console.log(`%c[VoiceRAG 📦] Final Audio Blob created:`, 'color: #10b981; font-weight: bold;', {
+          size: `${audioBlob.size.toLocaleString()} bytes`,
+          type: audioBlob.type,
+          duration: `${durationSec}s`
+        });
         state.recordedBlobs = [];
         sendAudioForProcessing(audioBlob);
       };
 
       state.mediaRecorder.start(250);
-      console.log('[VoiceRAG] MediaRecorder active and capturing frames.');
+      console.log('%c[VoiceRAG 🔴] Recording active (capturing 250ms time-slices)...', 'color: #ef4444; font-weight: bold;');
 
     } catch (err) {
-      console.error('[VoiceRAG] Microphone access error:', err);
+      console.error('%c[VoiceRAG ❌] Microphone access error:', 'color: #ef4444; font-weight: bold;', err);
       if (heroMicStatus) heroMicStatus.textContent = '● MIC PERMISSION NEEDED';
       alert(`Microphone Error: ${err.message || err.name || 'Access denied'}. Please check your browser microphone permissions.`);
     }
@@ -230,7 +240,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function stopRecording() {
     if (!state.isRecording) return;
-    console.log('[VoiceRAG] Stopping voice recording...');
+    console.log('%c[VoiceRAG 🛑] User clicked Stop Recording', 'color: #f59e0b; font-weight: bold;');
     state.isRecording = false;
 
     if (mainRecordBtn) {

@@ -127,8 +127,16 @@ async def process_audio_query(
     model: Optional[str] = Form(None)
 ):
     """Processes audio speech input through Sarvam STT -> VoiceRAG pipeline."""
+    print("\n" + "#" * 70)
+    print(f"[FastAPI /api/query/audio] INBOUND REQUEST")
+    print(f"  Filename    : {file.filename}")
+    print(f"  Content-Type: {file.content_type}")
+    print(f"  Language    : {language}")
+    print(f"  Model       : {model or 'default'}")
     try:
         audio_bytes = await file.read()
+        print(f"  Audio Bytes : {len(audio_bytes):,} bytes received")
+        print("#" * 70)
         pipeline = get_rag_pipeline()
         response = pipeline.process_request(
             audio_bytes=audio_bytes,
@@ -142,8 +150,10 @@ async def process_audio_query(
         )
         if response.get("timings"):
             latency_tracker.record(response["timings"])
+        print(f"[FastAPI /api/query/audio] Request completed with status: {response.get('status')}, E2E: {response.get('timings', {}).get('total_e2e_ms')}ms")
         return response
     except Exception as e:
+        print(f"[FastAPI /api/query/audio] ERROR handling request: {e}")
         logger.error(f"Error handling audio query: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
