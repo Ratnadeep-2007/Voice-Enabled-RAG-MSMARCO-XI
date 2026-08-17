@@ -1,74 +1,65 @@
 @echo off
-setlocal
+setlocal enabledelayedexpansion
 title VoiceRAG - Low-Latency Voice-Enabled Multilingual Dense RAG
 
 cd /d "%~dp0"
 
-echo =====================================================================
-echo   VoiceRAG: Low-Latency Multilingual Voice RAG System (MSMARCO-XI)
-echo   Reasoning Engine : Groq LPU (Llama-3.3-70B / 3.1-8B)
-echo   Vector Storage   : FAISS IVF-PQ + LMDB Zero-Copy
-echo   Target Latency   : Sub-200ms Retrieval Bound
-echo =====================================================================
-echo.
-
 REM 1. Initialize .env if missing
-if not exist ".env" if exist ".env.example" copy /y ".env.example" ".env" >nul
-
-REM 2. Activate virtual environment if present
-if exist ".venv\Scripts\activate.bat" (
-    echo [*] Activating virtual environment .venv
-    call ".venv\Scripts\activate.bat"
-    goto :check_python
-)
-if exist "venv\Scripts\activate.bat" (
-    echo [*] Activating virtual environment venv
-    call "venv\Scripts\activate.bat"
-    goto :check_python
+if not exist ".env" (
+    if exist ".env.example" (
+        echo [*] Initializing .env configuration from .env.example...
+        copy /y ".env.example" ".env" >nul
+    )
 )
 
-echo [*] Using system Python environment
+REM 2. Identify best Python binary
+set "PY_BIN="
+if exist ".venv\Scripts\python.exe" (
+    set "PY_BIN=.venv\Scripts\python.exe"
+    echo [*] Found virtual environment at .venv
+    goto :found_python
+)
+if exist "venv\Scripts\python.exe" (
+    set "PY_BIN=venv\Scripts\python.exe"
+    echo [*] Found virtual environment at venv
+    goto :found_python
+)
 
-:check_python
-REM 3. Check Python
 where python >nul 2>&1
-if %errorlevel% neq 0 (
-    echo [ERROR] Python was not found in your PATH.
-    echo Please install Python 3.10+ and add it to your system PATH.
-    echo.
-    pause
-    exit /b 1
+if %errorlevel% equ 0 (
+    set "PY_BIN=python"
+    goto :found_python
 )
 
-echo [*] Python detected. Checking dependencies...
+where py >nul 2>&1
+if %errorlevel% equ 0 (
+    set "PY_BIN=py -3"
+    goto :found_python
+)
 
-REM 4. Verify core dependencies
-python -c "import fastapi, uvicorn, httpx, faiss, lmdb" >nul 2>&1
+echo [ERROR] Python 3.10+ was not found in your PATH or virtual environment.
+echo Please install Python from https://python.org and check 'Add Python to PATH'.
+echo.
+pause
+exit /b 1
+
+:found_python
+
+REM 3. Verify core dependencies
+%PY_BIN% -c "import fastapi, uvicorn, httpx, faiss, lmdb" >nul 2>&1
 if %errorlevel% neq 0 (
-    echo [*] Installing missing dependencies from requirements.txt...
-    python -m pip install -r requirements.txt
+    echo [*] Installing dependencies from requirements.txt...
+    %PY_BIN% -m pip install -r requirements.txt
     if %errorlevel% neq 0 (
-        echo [ERROR] Failed to install dependencies. Please run 'pip install -r requirements.txt' manually.
+        echo [ERROR] Failed to install dependencies automatically.
+        echo Please run: %PY_BIN% -m pip install -r requirements.txt
         pause
         exit /b 1
     )
 )
 
-echo [*] All core dependencies verified.
-echo.
-echo =====================================================================
-echo   VoiceRAG Server Starting...
-echo   Local Dashboard   : http://localhost:8000
-echo   API Documentation : http://localhost:8000/docs
-echo   Architecture View : http://localhost:8000/architecture
-echo =====================================================================
-echo.
-
-REM 5. Open Web Dashboard in default browser in background
-start "" http://localhost:8000
-
-REM 6. Launch FastAPI Server with uvicorn
-python -m uvicorn api.main:app --host 127.0.0.1 --port 8000 --reload
+REM 4. Launch with smart runner (handles ports, browser opening, and active instance detection)
+%PY_BIN% run_server.py
 
 if %errorlevel% neq 0 (
     echo.
