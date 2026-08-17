@@ -138,32 +138,31 @@ document.addEventListener('DOMContentLoaded', () => {
   // -------------------------------------------------------------
   // Live Audio Recording Handlers (Sarvam AI Pipeline)
   // -------------------------------------------------------------
+  // Voice Recording with MediaRecorder & Live Visualizer
+  // -------------------------------------------------------------
   async function startRecording() {
+    console.log('[VoiceRAG] Requesting microphone access...');
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          channelCount: 1,
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true
-        }
-      });
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      console.log('[VoiceRAG] Microphone access granted:', stream);
 
       state.isRecording = true;
-      state.pcmChunks = [];
       state.mediaStream = stream;
+      state.recordedBlobs = [];
       state.recordStartTime = Date.now();
 
       // UI updates
-      if (heroMicBtn) heroMicBtn.classList.add('recording');
       if (mainRecordBtn) {
         mainRecordBtn.classList.add('recording');
         mainRecordText.textContent = 'Stop Recording';
         const icon = mainRecordBtn.querySelector('i[data-lucide]');
         if (icon) { icon.setAttribute('data-lucide', 'mic-off'); if (window.lucide) lucide.createIcons(); }
       }
-      if (heroMicStatus) heroMicStatus.textContent = '● LISTENING (Sarvam AI)...';
+      if (heroMicStatus) heroMicStatus.textContent = '● LISTENING (Sarvam AI v3)...';
       if (heroMicPrompt) heroMicPrompt.textContent = 'LISTENING...';
+      if (queryInput) {
+        queryInput.placeholder = '🎤 Listening with Sarvam AI v3... Speak your question now and click Stop.';
+      }
       if (recordTimer) {
         recordTimer.classList.remove('hidden');
         recordTimer.textContent = '00:00';
@@ -176,47 +175,64 @@ document.addEventListener('DOMContentLoaded', () => {
         if (recordTimer) recordTimer.textContent = `${mins}:${secs}`;
       }, 500);
 
-      // Audio Context for live visualizer and PCM buffer recording
-      const AudioContext = window.AudioContext || window.webkitAudioContext;
-      state.audioContext = new AudioContext();
-      if (state.audioContext.state === 'suspended') {
-        await state.audioContext.resume();
+      // Audio Context for live visualizer
+      try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        state.audioContext = new AudioContext();
+        if (state.audioContext.state === 'suspended') {
+          await state.audioContext.resume();
+        }
+        const source = state.audioContext.createMediaStreamSource(stream);
+        state.analyser = state.audioContext.createAnalyser();
+        state.analyser.fftSize = 64;
+        source.connect(state.analyser);
+        visualizeWaveform();
+      } catch (audioCtxErr) {
+        console.warn('[VoiceRAG] Visualizer init skipped:', audioCtxErr);
       }
-      const source = state.audioContext.createMediaStreamSource(stream);
 
-      state.analyser = state.audioContext.createAnalyser();
-      state.analyser.fftSize = 64;
-      source.connect(state.analyser);
-      visualizeWaveform();
-
-      // ScriptProcessor for pure PCM capture
-      const bufferSize = 4096;
-      state.scriptProcessor = state.audioContext.createScriptProcessor(bufferSize, 1, 1);
-      state.scriptProcessor.onaudioprocess = (e) => {
-        if (!state.isRecording) return;
-        const channelData = e.inputBuffer.getChannelData(0);
-        state.pcmChunks.push(new Float32Array(channelData));
+      // MediaRecorder initialization
+      let mimeType = 'audio/webm';
+      if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
+        mimeType = 'audio/webm;codecs=opus';
+      } else if (MediaRecorder.isTypeSupported('audio/mp4')) {
+        mimeType = 'audio/mp4';
+      } else if (MediaRecorder.isTypeSupported('audio/ogg')) {
+        mimeType = 'audio/ogg';
+      }
+      
+      console.log('[VoiceRAG] Initializing MediaRecorder with MIME:', mimeType);
+      state.mediaRecorder = new MediaRecorder(stream, { mimeType: mimeType });
+      
+      state.mediaRecorder.ondataavailable = (event) => {
+        if (event.data && event.data.size > 0) {
+          state.recordedBlobs.push(event.data);
+        }
       };
 
-      // Connect through a muted gain node to prevent acoustic feedback while keeping pipeline active
-      const muteGain = state.audioContext.createGain();
-      muteGain.gain.value = 0.0;
-      source.connect(state.scriptProcessor);
-      state.scriptProcessor.connect(muteGain);
-      muteGain.connect(state.audioContext.destination);
+      state.mediaRecorder.onstop = () => {
+        console.log(`[VoiceRAG] MediaRecorder stopped. Total chunks: ${state.recordedBlobs.length}`);
+        const audioBlob = new Blob(state.recordedBlobs, { type: mimeType });
+        console.log(`[VoiceRAG] Final audio blob: ${audioBlob.size} bytes, type: ${audioBlob.type}`);
+        state.recordedBlobs = [];
+        sendAudioForProcessing(audioBlob);
+      };
+
+      state.mediaRecorder.start(250);
+      console.log('[VoiceRAG] MediaRecorder active and capturing frames.');
 
     } catch (err) {
-      console.error('Microphone access error:', err);
+      console.error('[VoiceRAG] Microphone access error:', err);
       if (heroMicStatus) heroMicStatus.textContent = '● MIC PERMISSION NEEDED';
-      alert('Microphone access is required for Sarvam AI Voice recognition. Please check your browser microphone permissions or type your query directly.');
+      alert(`Microphone Error: ${err.message || err.name || 'Access denied'}. Please check your browser microphone permissions.`);
     }
   }
 
   function stopRecording() {
     if (!state.isRecording) return;
+    console.log('[VoiceRAG] Stopping voice recording...');
     state.isRecording = false;
 
-    if (heroMicBtn) heroMicBtn.classList.remove('recording');
     if (mainRecordBtn) {
       mainRecordBtn.classList.remove('recording');
       mainRecordText.textContent = 'Record Voice';
@@ -225,6 +241,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (heroMicStatus) heroMicStatus.textContent = '● SARVAM AI TRANSCRIBING...';
     if (heroMicPrompt) heroMicPrompt.textContent = 'PROCESSING...';
+    if (queryInput) queryInput.placeholder = 'Speak via microphone or type your question here...';
     if (recordTimer) recordTimer.classList.add('hidden');
     if (state.recordTimerInterval) clearInterval(state.recordTimerInterval);
 
@@ -233,56 +250,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     drawIdleWaveform();
 
-    // Disconnect audio nodes
-    if (state.scriptProcessor) {
-      try { state.scriptProcessor.disconnect(); } catch (e) {}
-      state.scriptProcessor = null;
+    if (state.mediaRecorder && state.mediaRecorder.state !== 'inactive') {
+      state.mediaRecorder.stop();
     }
+
     if (state.mediaStream) {
-      try { state.mediaStream.getTracks().forEach(t => t.stop()); } catch (e) {}
+      state.mediaStream.getTracks().forEach(t => t.stop());
       state.mediaStream = null;
     }
 
-    const audioCtx = state.audioContext;
-    const sampleRate = audioCtx ? audioCtx.sampleRate : 44100;
-    if (audioCtx && audioCtx.state !== 'closed') {
-      audioCtx.close().catch(() => {});
-    }
-
-    // Convert recorded PCM chunks into true 16kHz WAV
-    if (state.pcmChunks && state.pcmChunks.length > 0) {
-      let totalSamples = 0;
-      let sumSquares = 0;
-      for (let i = 0; i < state.pcmChunks.length; i++) {
-        const chunk = state.pcmChunks[i];
-        totalSamples += chunk.length;
-        for (let j = 0; j < chunk.length; j++) {
-          sumSquares += chunk[j] * chunk[j];
-        }
-      }
-      const rms = totalSamples > 0 ? Math.sqrt(sumSquares / totalSamples) : 0;
-      console.log(`[VoiceRAG] Audio captured: ${totalSamples} samples (${(totalSamples / sampleRate).toFixed(2)}s), RMS volume: ${rms.toFixed(4)}`);
-
-      if (rms < 0.0015 && totalSamples < 4000) {
-        if (heroMicStatus) heroMicStatus.textContent = '● SILENT AUDIO';
-        alert('No sound was detected from your microphone. Please check your mic volume/unmute and try speaking again.');
-        state.pcmChunks = [];
-        return;
-      }
-
-      const merged = new Float32Array(totalSamples);
-      let offset = 0;
-      for (let i = 0; i < state.pcmChunks.length; i++) {
-        merged.set(state.pcmChunks[i], offset);
-        offset += state.pcmChunks[i].length;
-      }
-
-      const resampled = downsampleBuffer(merged, sampleRate, 16000);
-      const wavBlob = encodeWAV(resampled, 16000);
-      state.pcmChunks = [];
-      sendAudioForProcessing(wavBlob);
-    } else {
-      if (heroMicStatus) heroMicStatus.textContent = '● NO SPEECH DETECTED';
+    if (state.audioContext && state.audioContext.state !== 'closed') {
+      state.audioContext.close().catch(() => {});
     }
   }
 
@@ -350,11 +328,15 @@ document.addEventListener('DOMContentLoaded', () => {
     executeQuery(query, state.currentLanguage);
   };
 
+  window.clearQueryText = function() {
+    if (queryInput) queryInput.value = '';
+  };
+
   let _toggleDebounce = false;
   window.toggleVoiceRecord = function() {
     if (_toggleDebounce) return;
     _toggleDebounce = true;
-    setTimeout(() => { _toggleDebounce = false; }, 300);
+    setTimeout(() => { _toggleDebounce = false; }, 350);
 
     if (state.isRecording) {
       stopRecording();
@@ -362,15 +344,6 @@ document.addEventListener('DOMContentLoaded', () => {
       startRecording();
     }
   };
-
-  // Mic Button Event Listeners — only addEventListener, no inline onclick in HTML
-  if (heroMicBtn) {
-    heroMicBtn.addEventListener('click', window.toggleVoiceRecord);
-  }
-
-  if (mainRecordBtn) {
-    mainRecordBtn.addEventListener('click', window.toggleVoiceRecord);
-  }
 
   // -------------------------------------------------------------
   // Preset Pills (Event Listener Fallback)

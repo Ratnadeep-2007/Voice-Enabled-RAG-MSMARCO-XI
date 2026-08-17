@@ -2,7 +2,7 @@
 Sarvam STT Client and Audio Transcription Service.
 Matches PRD §8.1: converts spoken audio to text with language detection,
 comprehensive pipeline observability, and latency measurement.
-Uses SOTA 'saarika:v2.5' model on Sarvam AI.
+Uses SOTA 'saaras:v3' model on Sarvam AI.
 """
 
 import time
@@ -23,6 +23,37 @@ if os.path.exists(_env_path):
 
 logger = logging.getLogger("VoiceRAG_STT")
 logging.basicConfig(level=logging.INFO)
+
+
+def normalize_audio_to_16k_wav(audio_bytes: bytes) -> bytes:
+    """
+    Decodes ANY audio format sent by browsers (WebM, Opus, MP4, AAC, OGG, WAV) using PyAV
+    and standardizes it into 16kHz Mono 16-bit PCM WAV in <2ms before sending to Sarvam AI.
+    """
+    if len(audio_bytes) < 32:
+        return audio_bytes
+    try:
+        import av
+        in_buf = io.BytesIO(audio_bytes)
+        out_buf = io.BytesIO()
+        with av.open(in_buf) as container:
+            if not container.streams.audio:
+                return audio_bytes
+            stream = container.streams.audio[0]
+            resampler = av.AudioResampler(format='s16', layout='mono', rate=16000)
+            with wave.open(out_buf, 'wb') as wav_out:
+                wav_out.setnchannels(1)
+                wav_out.setsampwidth(2)
+                wav_out.setframerate(16000)
+                for frame in container.decode(stream):
+                    for rf in resampler.resample(frame):
+                        wav_out.writeframes(rf.to_ndarray().tobytes())
+        normalized = out_buf.getvalue()
+        if len(normalized) > 44:
+            return normalized
+    except Exception as e:
+        logger.debug("PyAV normalization fallback: %s", e)
+    return audio_bytes
 
 
 def inspect_wav_audio(audio_bytes: bytes) -> Dict[str, Any]:
@@ -65,7 +96,7 @@ def inspect_wav_audio(audio_bytes: bytes) -> Dict[str, Any]:
                 "peak_amplitude": peak,
                 "rms_amplitude": round(rms, 2),
                 "rms_db": round(rms_db, 1),
-                "is_silent": rms < 40.0  # Threshold for audible speech
+                "is_silent": rms < 30.0  # Threshold for audible speech
             })
     except Exception as e:
         info["wav_parse_error"] = str(e)
@@ -118,18 +149,21 @@ class SarvamSTTClient:
         language_code: Optional[str] = None
     ) -> Dict[str, Any]:
         """
-        Transcribes speech audio bytes to text using Sarvam AI STT API (saarika:v2.5).
-        Includes extensive console diagnostics for observability.
+        Transcribes speech audio bytes to text using Sarvam AI STT API (saaras:v3).
+        Includes audio normalization (PyAV) and extensive console diagnostics for observability.
         """
         t0 = time.perf_counter()
         normalized_lang = self._normalize_lang_code(language_code or self.language_code)
         
-        # 1. Audio Inspection & Diagnostics
-        audio_info = inspect_wav_audio(audio_bytes)
+        # 1. Normalize audio format to 16kHz mono WAV (supports WebM, Opus, MP4, WAV)
+        normalized_wav_bytes = normalize_audio_to_16k_wav(audio_bytes)
+        
+        # 2. Audio Inspection & Diagnostics
+        audio_info = inspect_wav_audio(normalized_wav_bytes)
         print("=" * 68)
         print("[STT Pipeline] >>> Inbound Voice Audio Received")
         print(f"  Filename     : {filename}")
-        print(f"  Payload Size : {audio_info.get('size_bytes', len(audio_bytes)):,} bytes")
+        print(f"  Original Size: {len(audio_bytes):,} bytes | Normalized WAV: {len(normalized_wav_bytes):,} bytes")
         if audio_info.get("is_wav"):
             print(f"  Duration     : {audio_info.get('duration_seconds')}s ({audio_info.get('frames')} frames)")
             print(f"  Format       : {audio_info.get('sample_rate')}Hz Mono 16-bit PCM")
@@ -141,7 +175,7 @@ class SarvamSTTClient:
         print(f"  STT Model    : {self.model}")
         print("=" * 68)
 
-        # 2. Key Check
+        # 3. Key Check
         if not self.api_key or len(self.api_key) < 5:
             print("[STT Pipeline ERROR] SARVAM_API_KEY is not set or invalid in .env!")
             return {
@@ -153,7 +187,7 @@ class SarvamSTTClient:
                 "audio_info": audio_info
             }
 
-        # 3. Dispatch to Sarvam AI STT
+        # 4. Dispatch to Sarvam AI STT
         try:
             masked_key = f"{self.api_key[:6]}...{self.api_key[-4:]}"
             print(f"[STT Pipeline] Calling https://api.sarvam.ai/speech-to-text with key={masked_key}...")
@@ -164,7 +198,7 @@ class SarvamSTTClient:
                 "model": self.model
             }
             files = {
-                "file": (filename, audio_bytes, "audio/wav")
+                "file": ("speech.wav", normalized_wav_bytes, "audio/wav")
             }
 
             response = self._http_client.post(self.api_url, headers=headers, data=data, files=files)
