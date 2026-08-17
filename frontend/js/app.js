@@ -179,6 +179,9 @@ document.addEventListener('DOMContentLoaded', () => {
       // Audio Context for live visualizer and PCM buffer recording
       const AudioContext = window.AudioContext || window.webkitAudioContext;
       state.audioContext = new AudioContext();
+      if (state.audioContext.state === 'suspended') {
+        await state.audioContext.resume();
+      }
       const source = state.audioContext.createMediaStreamSource(stream);
 
       state.analyser = state.audioContext.createAnalyser();
@@ -195,13 +198,17 @@ document.addEventListener('DOMContentLoaded', () => {
         state.pcmChunks.push(new Float32Array(channelData));
       };
 
+      // Connect through a muted gain node to prevent acoustic feedback while keeping pipeline active
+      const muteGain = state.audioContext.createGain();
+      muteGain.gain.value = 0.0;
       source.connect(state.scriptProcessor);
-      state.scriptProcessor.connect(state.audioContext.destination);
+      state.scriptProcessor.connect(muteGain);
+      muteGain.connect(state.audioContext.destination);
 
     } catch (err) {
-      console.error('Microphone access denied:', err);
+      console.error('Microphone access error:', err);
       if (heroMicStatus) heroMicStatus.textContent = '● MIC PERMISSION NEEDED';
-      alert('Microphone access is required for Sarvam AI Voice recognition. Please allow microphone permissions in your browser or type your query directly.');
+      alert('Microphone access is required for Sarvam AI Voice recognition. Please check your browser microphone permissions or type your query directly.');
     }
   }
 
@@ -245,9 +252,24 @@ document.addEventListener('DOMContentLoaded', () => {
     // Convert recorded PCM chunks into true 16kHz WAV
     if (state.pcmChunks && state.pcmChunks.length > 0) {
       let totalSamples = 0;
+      let sumSquares = 0;
       for (let i = 0; i < state.pcmChunks.length; i++) {
-        totalSamples += state.pcmChunks[i].length;
+        const chunk = state.pcmChunks[i];
+        totalSamples += chunk.length;
+        for (let j = 0; j < chunk.length; j++) {
+          sumSquares += chunk[j] * chunk[j];
+        }
       }
+      const rms = totalSamples > 0 ? Math.sqrt(sumSquares / totalSamples) : 0;
+      console.log(`[VoiceRAG] Audio captured: ${totalSamples} samples (${(totalSamples / sampleRate).toFixed(2)}s), RMS volume: ${rms.toFixed(4)}`);
+
+      if (rms < 0.0015 && totalSamples < 4000) {
+        if (heroMicStatus) heroMicStatus.textContent = '● SILENT AUDIO';
+        alert('No sound was detected from your microphone. Please check your mic volume/unmute and try speaking again.');
+        state.pcmChunks = [];
+        return;
+      }
+
       const merged = new Float32Array(totalSamples);
       let offset = 0;
       for (let i = 0; i < state.pcmChunks.length; i++) {

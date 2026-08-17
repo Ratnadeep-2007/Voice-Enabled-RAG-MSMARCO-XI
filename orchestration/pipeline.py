@@ -139,6 +139,8 @@ class VoiceRAGPipeline:
         timings["validation_ms"] = round(validation_latency, 2)
 
         if not is_valid:
+            if audio_bytes and len(audio_bytes) > 0 and not query:
+                validation_msg = "No audible speech was detected by Sarvam AI STT. Please speak clearly into your microphone or type your query in the input bar."
             now_str = datetime.datetime.now().strftime("%H:%M:%S.%f")[:-3]
             trace_events.append(self._create_trace_event("INPUT_GUARD_REJECT", now_str, validation_latency, {"reason": validation_msg}))
             total_time = (time.perf_counter() - t_pipeline_start) * 1000.0
