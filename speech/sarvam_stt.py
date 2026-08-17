@@ -77,11 +77,11 @@ class SarvamSTTClient:
         self,
         api_key: Optional[str] = None,
         language_code: str = "unknown",
-        model: str = "saarika:v2.5"
+        model: Optional[str] = None
     ):
         self.api_key = (api_key or os.getenv("SARVAM_API_KEY", "")).strip()
         self.language_code = language_code
-        self.model = model
+        self.model = model or os.getenv("SARVAM_MODEL", "saaras:v3")
         self.api_url = "https://api.sarvam.ai/speech-to-text"
         
         # Persistent HTTP client with connection pooling & keep-alive
