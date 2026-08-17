@@ -43,18 +43,18 @@ if %errorlevel% neq 0 (
 echo [*] Python detected. Checking dependencies...
 
 REM 4. Verify core dependencies
-python -c "import fastapi, uvicorn, dotenv, httpx" >nul 2>&1
+python -c "import fastapi, uvicorn, httpx, faiss, lmdb" >nul 2>&1
 if %errorlevel% neq 0 (
-    echo [*] Installing required dependencies from requirements.txt...
+    echo [*] Installing missing dependencies from requirements.txt...
     python -m pip install -r requirements.txt
     if %errorlevel% neq 0 (
-        echo [ERROR] Failed to install dependencies.
+        echo [ERROR] Failed to install dependencies. Please run 'pip install -r requirements.txt' manually.
         pause
         exit /b 1
     )
 )
 
-echo [*] Dependencies verified.
+echo [*] All core dependencies verified.
 echo.
 echo =====================================================================
 echo   VoiceRAG Server Starting...
@@ -64,14 +64,14 @@ echo   Architecture View : http://localhost:8000/architecture
 echo =====================================================================
 echo.
 
-REM 5. Open Web Dashboard in browser
-start http://localhost:8000
+REM 5. Open Web Dashboard in default browser in background
+start "" http://localhost:8000
 
-REM 6. Launch FastAPI Server
-python -m uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
+REM 6. Launch FastAPI Server with uvicorn
+python -m uvicorn api.main:app --host 127.0.0.1 --port 8000 --reload
 
 if %errorlevel% neq 0 (
     echo.
-    echo [ERROR] VoiceRAG server exited with an error.
+    echo [ERROR] VoiceRAG server exited with code %errorlevel%.
     pause
 )
